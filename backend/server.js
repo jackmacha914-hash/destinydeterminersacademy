@@ -106,7 +106,7 @@ app.use('/api/transport/attendance', require('./routes/transportAttendance'));
 
 // Always serve login for root and /login
 app.get(['/', '/'], (req, res) => {
-  res.sendFile(path.join(pagesPath, 'about.html'));
+  res.sendFile(path.join(pagesPath, 'login.html'));
 });
 
 // Admin dashboard
