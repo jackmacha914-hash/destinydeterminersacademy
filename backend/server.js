@@ -146,3 +146,26 @@ mongoose.connection.once('open', () => {
 
 console.log("🧠 Connected DB name:", mongoose.connection.name);
 
+app.get('/setup-admin', async (req, res) => {
+  const bcrypt = require('bcrypt');
+  const User = require('./models/User');
+
+  try {
+    const existingAdmin = await User.findOne({ email: "admin@admin.com" });
+    if (existingAdmin) return res.send("Admin already exists ✅");
+
+    const hashedPassword = await bcrypt.hash("admin123", 10);
+    await new User({
+      name: "Admin User",
+      email: "admin@admin.com",
+      role: "admin",
+      password: hashedPassword
+    }).save();
+
+    res.send("✅ Admin user created successfully!");
+  } catch (err) {
+    res.status(500).send("❌ Error: " + err.message);
+  }
+});
+
+
