@@ -3,7 +3,7 @@ require('dotenv').config(); // Load .env variables
 
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
-const User = require('./backend/models/User'); // make sure this path is correct
+const User = require('./models/User'); // make sure this path is correct
 
 // Check if env is loaded
 console.log("Mongo URI:", process.env.MONGODB_URI);
