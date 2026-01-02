@@ -17,7 +17,7 @@ connectDB();
 // Global CORS – allow frontend domain
 // -------------------------
 app.use(cors({
-  origin: "https://eagles-emulators-schools.onrender.com",
+  origin: "https://destinydeterminersacademy.onrender.com",
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true
