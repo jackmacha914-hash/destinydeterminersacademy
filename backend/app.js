@@ -118,11 +118,20 @@ app.use('/api/attendance', attendanceRoutes);
 
 
 // ------------------- MONGODB CONNECTION -------------------
-mongoose.connect(process.env.MONGODB_URI, {
+const mongoURI = process.env.MONGODB_URI?.trim();
+
+console.log('Using MongoDB URI:', mongoURI.replace(/\/\/.*@/, '//<hidden>@'));
+
+mongoose.connect(mongoURI, {
   useNewUrlParser: true,
   useUnifiedTopology: true
 })
-.then(() => console.log('✅ MongoDB connected successfully'))
-.catch(err => console.error('❌ MongoDB connection error:', err));
+.then(() => {
+  console.log('✅ MongoDB connected successfully');
+  console.log('🧠 Connected DB name:', mongoose.connection.name);
+})
+.catch(err => {
+  console.error('❌ MongoDB connection error:', err);
+});
 
 module.exports = app;
