@@ -36,15 +36,15 @@ const adminData = {
 // Hash password and create admin
 async function createAdmin() {
   try {
-    const existingAdmin = await User.findOne({ email: adminData.email });
-    if (existingAdmin) {
-      console.log("⚠️ Admin user already exists!");
-      process.exit(0);
-    }
+    // Delete existing admin if any
+    await User.deleteOne({ email: adminData.email });
+    console.log("⚠️ Deleted any existing admin user");
 
+    // Hash password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(adminData.password, salt);
 
+    // Create new admin
     const adminUser = new User({
       ...adminData,
       password: hashedPassword
@@ -60,5 +60,3 @@ async function createAdmin() {
     process.exit(1);
   }
 }
-
-createAdmin();
