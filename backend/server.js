@@ -8,6 +8,8 @@ const cors = require('cors');
 
 const app = express();
 
+
+
 // -------------------------
 // Connect to MongoDB
 // -------------------------
@@ -141,3 +143,6 @@ mongoose.connection.once('open', () => {
     console.log(`🚀 Server running on port ${PORT}`);
   });
 });
+
+console.log("🧠 Connected DB name:", mongoose.connection.name);
+
