@@ -5,7 +5,6 @@ const validateClass = (value) => {
   if (!value) return true; // Allow empty for non-students
    return /^(Grade\s\d{1,2}|Form\s[1-4]|PP[12]|Pre-Primary\s1\s\(PP1\)|Pre-Primary\s2\s\(PP2\))$/i.test(value);
 };
-};
 
 const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
