@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 // Validate class format (e.g., 'Grade 1', 'Form 1')
 const validateClass = (value) => {
   if (!value) return true; // Allow empty for non-students
-  return /^(Grade\s\d{1,2}|Form\s[1-4]|Pre-Primarys/d/s(PP[12])$/i.test(value);
+ return /^(Grade\s\d{1,2}|Form\s[1-4]|PP[12]|Pre-Primary\s[12]\s\(PP[12]\))$/i.test(value);
 };
 
 const userSchema = new mongoose.Schema({
