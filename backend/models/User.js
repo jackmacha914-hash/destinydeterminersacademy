@@ -38,8 +38,15 @@ const userSchema = new mongoose.Schema({
     dob: Date,
     gender: String,
     address: String,
-    class: { type: String, default: '' }, // Ensure class is defined in profile
-    specialization: String,
+    class: { 
+  type: String, 
+  default: '',
+  validate: {
+    validator: validateClass,
+    message: props => `${props.value} is not a valid class`
+  }
+},
+   specialization: String,
     subjects: [String],
     photo: String,
     emergencyContact: {
