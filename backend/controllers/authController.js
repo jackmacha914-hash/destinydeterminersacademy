@@ -54,13 +54,17 @@ exports.registerUser = [
                 const classValue = req.body.class.trim();
                 console.log('Processing class:', classValue);
                 
-                // Validate class format
-                /^(Grade\s\d{1,2}|Form\s[1-4]|Pre-Primary 1 \(PP1\)|Pre-Primary 2 \(PP2\))$/i{
-                    return res.status(400).json({
-                        success: false,
-                        message: "Invalid class format. Please use format 'Grade X' or 'Form X'"
-                    });
-                }
+               // Validate class format
+if (
+  !/^(Grade\s\d{1,2}|Form\s[1-4]|Pre-Primary 1 \(PP1\)|Pre-Primary 2 \(PP2\))$/i
+    .test(classValue)
+) {
+  return res.status(400).json({
+    success: false,
+    message: "Invalid class format. Please use format 'Grade X', 'Form X', 'PP1' or 'PP2'"
+  });
+}
+
                 
                 // Standardize class format (e.g., 'grade 1' -> 'Grade 1')
                 const formattedClass = classValue
