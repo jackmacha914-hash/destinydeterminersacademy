@@ -55,7 +55,7 @@ exports.registerUser = [
                 console.log('Processing class:', classValue);
                 
                 // Validate class format
-                if (!/^(Grade\s\d{1,2}|Form\s[1-4]|PP[12])$/i.test(classValue)) {
+                /^(Grade\s\d{1,2}|Form\s[1-4]|Pre-Primary 1 \(PP1\)|Pre-Primary 2 \(PP2\))$/i{
                     return res.status(400).json({
                         success: false,
                         message: "Invalid class format. Please use format 'Grade X' or 'Form X'"
