@@ -75,6 +75,68 @@ if (typeof API_BASE_URL === 'undefined') {
         }
     }
 
+    class UserManagement {
+    constructor() {
+        this.users = [];
+        this.userTableBody = document.getElementById('user-table-body');
+        this.loadUsers(); // Load users on page load
+    }
+
+    // Fetch users from the backend
+    async loadUsers() {
+        try {
+            const response = await apiFetch('/users'); // your backend endpoint
+            if (response.success && Array.isArray(response.users)) {
+                this.users = response.users;
+                console.log('Users loaded:', this.users); // debug
+                this.renderUserTable();
+            } else {
+                this.users = [];
+                this.renderUserTable();
+                console.warn('No users found');
+            }
+        } catch (err) {
+            console.error('Failed to load users:', err);
+            this.users = [];
+            this.renderUserTable();
+        }
+    }
+
+    // Render users into the table
+    renderUserTable() {
+        if (!this.userTableBody) return;
+        this.userTableBody.innerHTML = '';
+
+        if (!this.users || this.users.length === 0) {
+            this.userTableBody.innerHTML = '<tr><td colspan="7" class="text-center">No users found</td></tr>';
+            return;
+        }
+
+        this.users.forEach(user => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><input type="checkbox" class="user-select"></td>
+                <td>${user.name || '-'}</td>
+                <td>${user.email || '-'}</td>
+                <td>${user.username || '-'}</td>
+                <td>${user.role || '-'}</td>
+                <td>${user.status || 'Active'}</td>
+                <td>
+                    <button class="btn btn-sm btn-primary edit-user">Edit</button>
+                    <button class="btn btn-sm btn-danger delete-user">Delete</button>
+                </td>
+            `;
+            this.userTableBody.appendChild(tr);
+        });
+    }
+}
+
+// Initialize on DOM load
+document.addEventListener('DOMContentLoaded', () => {
+    window.userManagement = new UserManagement();
+});
+
+
     loadSampleData() {
         this.students = [
             {
