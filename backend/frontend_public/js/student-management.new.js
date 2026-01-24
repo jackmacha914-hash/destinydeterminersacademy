@@ -39,10 +39,14 @@ class StudentManagement {
             try {
                 // API base URL - update this to your actual API URL
 if (typeof API_BASE_URL === 'undefined') {
-    window.API_BASE_URL = 'https://destinydeterminersacademy.onrender.com';
+    window.API_BASE_URL = 'https://destinydeterminersacademy.onrender.com/api/students';
 }
 
-                const response = await fetch(`${apiUrl}/students`);
+                const response = await fetch(`${API_BASE_URL}/students${selectedClass ? '?class=' + selectedClass : ''}`, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+            cache: 'no-store'
+        });
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
