@@ -683,7 +683,7 @@ if (this.feesYearFilter) {
         const paymentData = await this.showPaymentModal(fee, balance);
         if (!paymentData) {
             console.log('Payment canceled by user');
-            return; // User cancelled the modal
+            return; // User cancelled
         }
 
         console.log('Submitting payment:', paymentData);
@@ -719,7 +719,9 @@ if (this.feesYearFilter) {
             const responseData = await response.json();
 
             // Refresh fee table
-            await this.loadFeesWithFilters();
+            if (typeof this.loadFeesWithFilters === 'function') {
+                await this.loadFeesWithFilters();
+            }
 
             // Print receipt
             this.generateReceipt({
@@ -761,6 +763,7 @@ async showPaymentModal(fee, balance) {
         const cancelBtn = document.getElementById('payment-cancel');
         const submitBtn = document.getElementById('payment-submit');
 
+        // Reset modal fields
         studentInfo.textContent = `${fee.studentName} (${fee.className})`;
         balanceInfo.textContent = `Balance: Ksh ${balance.toLocaleString()}`;
         amountInput.value = '';
@@ -771,6 +774,11 @@ async showPaymentModal(fee, balance) {
         notesInput.value = '';
 
         modal.classList.remove('hidden');
+
+        // Cleanup previous event listeners
+        methodSelect.onchange = null;
+        cancelBtn.onclick = null;
+        submitBtn.onclick = null;
 
         // Show reference field only for Mpesa or Bank
         methodSelect.onchange = () => {
@@ -783,12 +791,16 @@ async showPaymentModal(fee, balance) {
             }
         };
 
+        // Cancel button
         cancelBtn.onclick = () => {
             modal.classList.add('hidden');
-            resolve(null); // User cancelled
+            resolve(null);
         };
 
+        // Submit button
         submitBtn.onclick = () => {
+            if (submitBtn.disabled) return;
+
             const amount = parseFloat(amountInput.value);
             if (!amount || amount <= 0) {
                 alert('Enter a valid payment amount');
@@ -799,6 +811,9 @@ async showPaymentModal(fee, balance) {
                 return;
             }
 
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Processing...';
+
             const paymentData = {
                 amount,
                 paymentMethod: methodSelect.value,
@@ -806,7 +821,13 @@ async showPaymentModal(fee, balance) {
                 notes: notesInput.value || ''
             };
 
+            // Hide modal and resolve promise
             modal.classList.add('hidden');
+
+            // Reset submit button
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Submit';
+
             resolve(paymentData);
         };
     });
