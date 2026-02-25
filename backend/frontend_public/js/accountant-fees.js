@@ -649,7 +649,13 @@ if (this.feesYearFilter) {
     
 class AccountantFees {
 
+    /* ================================
+       RECORD PAYMENT
+    ================================= */
     async recordPayment(feeId) {
+        let paymentBtn = null;
+        let originalText = 'Record Payment';
+
         try {
             console.log('=== Starting recordPayment ===');
             console.log('Fee ID:', feeId);
@@ -673,21 +679,22 @@ class AccountantFees {
                 return;
             }
 
-            // THIS will now work because modal is inside class
+            // Show payment modal
             const paymentData = await this.showPaymentModal(fee, balance);
             if (!paymentData) return;
 
-            const paymentBtn = document.querySelector(
+            // Disable button
+            paymentBtn = document.querySelector(
                 `[data-action="record-payment"][data-fee-id="${feeId}"]`
             );
 
-            const originalText = paymentBtn?.textContent || 'Record Payment';
-
             if (paymentBtn) {
+                originalText = paymentBtn.textContent;
                 paymentBtn.disabled = true;
                 paymentBtn.textContent = 'Processing...';
             }
 
+            // Send payment to backend
             const response = await fetch(
                 `https://destinydeterminersacademy.onrender.com/api/fees/${feeId}/payments`,
                 {
@@ -702,16 +709,18 @@ class AccountantFees {
             );
 
             if (!response.ok) {
-                const text = await response.text();
-                throw new Error(`Payment failed: ${text}`);
+                const errorText = await response.text();
+                throw new Error(errorText || 'Payment failed');
             }
 
             await response.json();
 
+            // Reload table safely
             if (typeof this.loadFeesWithFilters === 'function') {
                 await this.loadFeesWithFilters();
             }
 
+            // Generate receipt
             this.generateReceipt({
                 studentName: fee.studentName,
                 className: fee.className,
@@ -726,25 +735,31 @@ class AccountantFees {
         } catch (error) {
             console.error('Error in recordPayment:', error);
             this.showNotification(
-                `Error: ${error.message || 'Failed to record payment'}`,
+                error.message || 'Failed to record payment',
                 'error'
             );
         } finally {
-            const paymentBtn = document.querySelector(
-                `[data-action="record-payment"][data-fee-id="${feeId}"]`
-            );
             if (paymentBtn) {
                 paymentBtn.disabled = false;
-                paymentBtn.textContent = 'Record Payment';
+                paymentBtn.textContent = originalText;
             }
         }
     }
 
 
+    /* ================================
+       SHOW PAYMENT MODAL
+    ================================= */
     async showPaymentModal(fee, balance) {
         return new Promise((resolve) => {
 
             const modal = document.getElementById('payment-modal');
+            if (!modal) {
+                console.error('Payment modal not found in HTML');
+                resolve(null);
+                return;
+            }
+
             const studentInfo = document.getElementById('modal-student-info');
             const balanceInfo = document.getElementById('modal-balance-info');
             const amountInput = document.getElementById('payment-amount');
@@ -755,6 +770,15 @@ class AccountantFees {
             const cancelBtn = document.getElementById('payment-cancel');
             const submitBtn = document.getElementById('payment-submit');
 
+            // Safety check
+            if (!studentInfo || !balanceInfo || !amountInput || !methodSelect ||
+                !referenceInput || !referenceLabel || !cancelBtn || !submitBtn) {
+                console.error('Some modal elements are missing in HTML');
+                resolve(null);
+                return;
+            }
+
+            // Populate data
             studentInfo.textContent = `${fee.studentName} (${fee.className})`;
             balanceInfo.textContent = `Balance: Ksh ${balance.toLocaleString()}`;
 
@@ -768,8 +792,9 @@ class AccountantFees {
 
             modal.classList.remove('hidden');
 
+            // Show reference only for Mpesa / Bank
             methodSelect.onchange = () => {
-                if (methodSelect.value === 'Mpesa' || methodSelect.value === 'Bank') {
+                if (['Mpesa', 'Bank'].includes(methodSelect.value)) {
                     referenceInput.classList.remove('hidden');
                     referenceLabel.classList.remove('hidden');
                 } else {
@@ -799,11 +824,10 @@ class AccountantFees {
                 const paymentData = {
                     amount,
                     paymentMethod: methodSelect.value,
-                    reference:
-                        methodSelect.value === 'Mpesa' || methodSelect.value === 'Bank'
-                            ? referenceInput.value || ''
-                            : '',
-                    notes: notesInput.value || ''
+                    reference: ['Mpesa', 'Bank'].includes(methodSelect.value)
+                        ? referenceInput.value.trim()
+                        : '',
+                    notes: notesInput.value.trim()
                 };
 
                 modal.classList.add('hidden');
