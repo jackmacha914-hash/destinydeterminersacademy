@@ -526,6 +526,20 @@ function initializeFeeForm() {
             secondInstallment: parseCurrency(secondInstallmentInput?.value) || 0,
             thirdInstallment: parseCurrency(thirdInstallmentInput?.value) || 0
         };
+// radio  for fee classes
+        const feeModeRadios = document.querySelectorAll('input[name="fee-mode"]');
+const studentSelect = document.getElementById('fee-student-id');
+
+feeModeRadios.forEach(radio => {
+  radio.addEventListener('change', () => {
+    if (radio.value === 'class' && radio.checked) {
+      studentSelect.disabled = true;
+      studentSelect.value = ''; // clear selection
+    } else if (radio.value === 'student' && radio.checked) {
+      studentSelect.disabled = false;
+    }
+  });
+});
         
         // Add optional fields if they exist
         if (dueDate) formData.dueDate = dueDate;
