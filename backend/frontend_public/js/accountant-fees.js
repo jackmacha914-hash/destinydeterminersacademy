@@ -647,100 +647,172 @@ if (this.feesYearFilter) {
         this.showNotification('Viewing fee details for: ' + feeId, 'info');
     }
     
- async recordPayment(feeId) {
-    try {
-        console.log('=== Starting recordPayment ===');
-        console.log('Fee ID:', feeId);
+class AccountantFees {
 
-        const token = localStorage.getItem('token');
-        if (!token) {
-            this.showNotification('You must be logged in to record payments', 'error');
-            window.location.href = '/login.html';
-            return;
-        }
+    async recordPayment(feeId) {
+        try {
+            console.log('=== Starting recordPayment ===');
+            console.log('Fee ID:', feeId);
 
-        // Get fee details
-        const fee = await this.getFeeById(feeId);
-        if (!fee) throw new Error('Fee record not found');
-
-        const totalFees = parseFloat(fee.totalFees || fee.amount || 0);
-        const paidAmount = parseFloat(fee.paidAmount || fee.amountPaid || 0);
-        const balance = totalFees - paidAmount;
-
-        if (balance <= 0) {
-            this.showNotification('This fee is already fully paid', 'info');
-            return;
-        }
-
-        // Show modal
-        const paymentData = await this.showPaymentModal(fee, balance);
-        if (!paymentData) return;
-
-        const paymentBtn = document.querySelector(
-            `[data-action="record-payment"][data-fee-id="${feeId}"]`
-        );
-        const originalText = paymentBtn?.textContent || 'Record Payment';
-
-        if (paymentBtn) {
-            paymentBtn.disabled = true;
-            paymentBtn.textContent = 'Processing...';
-        }
-
-        const response = await fetch(
-            `https://destinydeterminersacademy.onrender.com/api/fees/${feeId}/payments`,
-            {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify(paymentData)
+            const token = localStorage.getItem('token');
+            if (!token) {
+                this.showNotification('You must be logged in to record payments', 'error');
+                window.location.href = '/login.html';
+                return;
             }
-        );
 
-        if (!response.ok) {
-            const text = await response.text();
-            throw new Error(`Payment failed: ${text}`);
-        }
+            const fee = await this.getFeeById(feeId);
+            if (!fee) throw new Error('Fee record not found');
 
-        const responseData = await response.json();
-        const updatedFee = responseData.fee || responseData;
+            const totalFees = parseFloat(fee.totalFees || fee.amount || 0);
+            const paidAmount = parseFloat(fee.paidAmount || fee.amountPaid || 0);
+            const balance = totalFees - paidAmount;
 
-        // Refresh table
-        if (typeof this.loadFeesWithFilters === 'function') {
-            await this.loadFeesWithFilters();
-        }
+            if (balance <= 0) {
+                this.showNotification('This fee is already fully paid', 'info');
+                return;
+            }
 
-        // Generate receipt
-        this.generateReceipt({
-            studentName: fee.studentName,
-            className: fee.className,
-            paymentAmount: paymentData.amount,
-            balance: balance - paymentData.amount,
-            paymentMethod: paymentData.paymentMethod,
-            reference: paymentData.reference
-        });
+            // THIS will now work because modal is inside class
+            const paymentData = await this.showPaymentModal(fee, balance);
+            if (!paymentData) return;
 
-        this.showNotification('Payment recorded successfully', 'success');
+            const paymentBtn = document.querySelector(
+                `[data-action="record-payment"][data-fee-id="${feeId}"]`
+            );
 
-    } catch (error) {
-        console.error('Error in recordPayment:', error);
-        this.showNotification(
-            `Error: ${error.message || 'Failed to record payment'}`,
-            'error'
-        );
-    } finally {
-        const paymentBtn = document.querySelector(
-            `[data-action="record-payment"][data-fee-id="${feeId}"]`
-        );
-        if (paymentBtn) {
-            paymentBtn.disabled = false;
-            paymentBtn.textContent = 'Record Payment';
+            const originalText = paymentBtn?.textContent || 'Record Payment';
+
+            if (paymentBtn) {
+                paymentBtn.disabled = true;
+                paymentBtn.textContent = 'Processing...';
+            }
+
+            const response = await fetch(
+                `https://destinydeterminersacademy.onrender.com/api/fees/${feeId}/payments`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(paymentData)
+                }
+            );
+
+            if (!response.ok) {
+                const text = await response.text();
+                throw new Error(`Payment failed: ${text}`);
+            }
+
+            await response.json();
+
+            if (typeof this.loadFeesWithFilters === 'function') {
+                await this.loadFeesWithFilters();
+            }
+
+            this.generateReceipt({
+                studentName: fee.studentName,
+                className: fee.className,
+                paymentAmount: paymentData.amount,
+                balance: balance - paymentData.amount,
+                paymentMethod: paymentData.paymentMethod,
+                reference: paymentData.reference
+            });
+
+            this.showNotification('Payment recorded successfully', 'success');
+
+        } catch (error) {
+            console.error('Error in recordPayment:', error);
+            this.showNotification(
+                `Error: ${error.message || 'Failed to record payment'}`,
+                'error'
+            );
+        } finally {
+            const paymentBtn = document.querySelector(
+                `[data-action="record-payment"][data-fee-id="${feeId}"]`
+            );
+            if (paymentBtn) {
+                paymentBtn.disabled = false;
+                paymentBtn.textContent = 'Record Payment';
+            }
         }
     }
+
+
+    async showPaymentModal(fee, balance) {
+        return new Promise((resolve) => {
+
+            const modal = document.getElementById('payment-modal');
+            const studentInfo = document.getElementById('modal-student-info');
+            const balanceInfo = document.getElementById('modal-balance-info');
+            const amountInput = document.getElementById('payment-amount');
+            const methodSelect = document.getElementById('payment-method');
+            const referenceInput = document.getElementById('payment-reference');
+            const referenceLabel = document.getElementById('reference-label');
+            const notesInput = document.getElementById('payment-notes');
+            const cancelBtn = document.getElementById('payment-cancel');
+            const submitBtn = document.getElementById('payment-submit');
+
+            studentInfo.textContent = `${fee.studentName} (${fee.className})`;
+            balanceInfo.textContent = `Balance: Ksh ${balance.toLocaleString()}`;
+
+            amountInput.value = '';
+            methodSelect.value = 'Cash';
+            referenceInput.value = '';
+            notesInput.value = '';
+
+            referenceInput.classList.add('hidden');
+            referenceLabel.classList.add('hidden');
+
+            modal.classList.remove('hidden');
+
+            methodSelect.onchange = () => {
+                if (methodSelect.value === 'Mpesa' || methodSelect.value === 'Bank') {
+                    referenceInput.classList.remove('hidden');
+                    referenceLabel.classList.remove('hidden');
+                } else {
+                    referenceInput.classList.add('hidden');
+                    referenceLabel.classList.add('hidden');
+                }
+            };
+
+            cancelBtn.onclick = () => {
+                modal.classList.add('hidden');
+                resolve(null);
+            };
+
+            submitBtn.onclick = () => {
+                const amount = parseFloat(amountInput.value);
+
+                if (!amount || amount <= 0) {
+                    alert('Enter a valid payment amount');
+                    return;
+                }
+
+                if (amount > balance) {
+                    alert(`Amount cannot exceed balance of Ksh ${balance}`);
+                    return;
+                }
+
+                const paymentData = {
+                    amount,
+                    paymentMethod: methodSelect.value,
+                    reference:
+                        methodSelect.value === 'Mpesa' || methodSelect.value === 'Bank'
+                            ? referenceInput.value || ''
+                            : '',
+                    notes: notesInput.value || ''
+                };
+
+                modal.classList.add('hidden');
+                resolve(paymentData);
+            };
+        });
+    }
+
 }
-    
     /**
      * View payment history for a specific fee
      * @param {string} feeId - The ID of the fee to view
