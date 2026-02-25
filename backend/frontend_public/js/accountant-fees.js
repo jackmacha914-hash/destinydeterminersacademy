@@ -673,18 +673,110 @@ if (this.feesYearFilter) {
             }
             
             // Show a payment modal or form
-            const amount = prompt(`Enter payment amount (Maximum: ${this.formatCurrency(balance)})`);
-            
-            if (!amount || isNaN(amount) || parseFloat(amount) <= 0) {
-                this.showNotification('Please enter a valid payment amount', 'error');
+            // Open modal
+        const modal = document.getElementById('payment-modal');
+        const studentInfo = document.getElementById('modal-student-info');
+        const balanceInfo = document.getElementById('modal-balance-info');
+        const amountInput = document.getElementById('payment-amount');
+        const methodSelect = document.getElementById('payment-method');
+        const referenceInput = document.getElementById('payment-reference');
+        const referenceLabel = document.getElementById('reference-label');
+        const notesInput = document.getElementById('payment-notes');
+        const cancelBtn = document.getElementById('payment-cancel');
+        const submitBtn = document.getElementById('payment-submit');
+
+        studentInfo.textContent = `${fee.studentName} (${fee.className})`;
+        balanceInfo.textContent = `Balance: Ksh ${balance.toLocaleString()}`;
+        amountInput.value = '';
+        methodSelect.value = 'Cash';
+        referenceInput.value = '';
+        referenceInput.classList.add('hidden');
+        referenceLabel.classList.add('hidden');
+        notesInput.value = '';
+
+        modal.classList.remove('hidden');
+
+        // Show reference field only for Mpesa or Bank
+        methodSelect.onchange = () => {
+            if (methodSelect.value === 'Mpesa' || methodSelect.value === 'Bank') {
+                referenceInput.classList.remove('hidden');
+                referenceLabel.classList.remove('hidden');
+            } else {
+                referenceInput.classList.add('hidden');
+                referenceLabel.classList.add('hidden');
+            }
+        };
+
+        cancelBtn.onclick = () => {
+            modal.classList.add('hidden');
+        };
+
+        submitBtn.onclick = async () => {
+            const paymentAmount = parseFloat(amountInput.value);
+            if (!paymentAmount || paymentAmount <= 0) {
+                alert('Enter a valid payment amount');
                 return;
             }
-            
-            const paymentAmount = parseFloat(amount);
             if (paymentAmount > balance) {
-                this.showNotification(`Amount cannot exceed the balance of ${this.formatCurrency(balance)}`, 'error');
+                alert(`Amount cannot exceed balance of Ksh ${balance}`);
                 return;
             }
+
+            const paymentData = {
+                amount: paymentAmount,
+                paymentMethod: methodSelect.value,
+                reference: referenceInput.value || `PAY-${Date.now()}`,
+                notes: notesInput.value || ''
+            };
+
+            // Disable button while processing
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Processing...';
+
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`https://destinydeterminersacademy.onrender.com/api/fees/${feeId}/payments`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(paymentData)
+                });
+
+                if (!response.ok) throw new Error('Payment failed');
+
+                const responseData = await response.json();
+                modal.classList.add('hidden');
+
+                // Refresh fee table
+                await this.loadFeesWithFilters();
+
+                // Print receipt
+                this.generateReceipt({
+                    studentName: fee.studentName,
+                    className: fee.className,
+                    paymentAmount,
+                    balance: balance - paymentAmount,
+                    paymentMethod: paymentData.paymentMethod,
+                    reference: paymentData.reference
+                });
+
+                this.showNotification('Payment recorded successfully', 'success');
+            } catch (err) {
+                console.error(err);
+                alert('Failed to record payment. Check console.');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Submit';
+            }
+        };
+    } catch (err) {
+        console.error(err);
+        this.showNotification('Error recording payment', 'error');
+    }
+
             
             const token = localStorage.getItem('token');
             if (!token) {
@@ -702,12 +794,6 @@ if (this.feesYearFilter) {
             }
             
             try {
-                const paymentData = {
-                    amount: paymentAmount,
-                    paymentMethod: 'Cash',
-                    reference: `PAY-${Date.now()}`,
-                    notes: 'Payment recorded via accountant portal'
-                };
                 
                 console.log('Sending payment data:', paymentData);
                 
