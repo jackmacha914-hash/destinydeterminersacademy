@@ -2458,19 +2458,32 @@ window.fetch = async (input, init = {}) => {
     </div>
 </section>
 
-<!-- Modal JS -->
+<!-- Modal JS (Fixed) -->
 <script>
 function openModal(modalId) {
-    document.getElementById(modalId).classList.remove('hidden');
+    const modal = document.getElementById(modalId);
+    if(modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex'); // ensure modal displays properly
+    }
 }
+
 function closeModal(modalId) {
-    document.getElementById(modalId).classList.add('hidden');
+    const modal = document.getElementById(modalId);
+    if(modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
 }
-window.onclick = function(event) {
+
+// Close modal if clicking outside the content
+window.addEventListener('click', function(event) {
     document.querySelectorAll('.modal').forEach(modal => {
-        if(event.target === modal) modal.classList.add('hidden');
+        if(event.target === modal) {
+            closeModal(modal.id);
+        }
     });
-};
+});
 </script>
 
         <!-- Attendance Management Section -->
