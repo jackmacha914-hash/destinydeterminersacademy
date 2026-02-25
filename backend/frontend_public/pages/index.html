@@ -2281,125 +2281,113 @@ window.fetch = async (input, init = {}) => {
     </div>
 </div>
         <!-- Accountant Section (Modernized) -->
-       <!-- Accountant Section (Modernized) -->
+      <!-- ===================== FINANCE / ACCOUNTANT SECTION ===================== -->
 <section id="accountant-section" class="tab-section" style="display:none;">
-    <h2>Accountant / Fee Management</h2>
+    <h2 class="text-2xl font-bold mb-4">Finance Management</h2>
 
-    <div class="form-container">
-        <h3>Add Fee Record for Class</h3>
-        <form id="fee-form" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div class="form-group">
-                <label for="fee-class-name">Class</label>
-                <select id="fee-class-name" class="w-full p-2 border rounded" required>
-                    <option value="">Select a class</option>
-                    <!-- Classes populated dynamically -->
+    <!-- ================= SET CLASS TERM FEES ================= -->
+    <div class="form-container mb-6">
+        <h3 class="text-lg font-semibold mb-3">Set Fees Per Class (Per Term)</h3>
+
+        <form id="set-class-fee-form" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            
+            <div>
+                <label>Class</label>
+                <select id="set-fee-class" class="w-full border p-2 rounded" required>
+                    <option value="">Select Class</option>
                 </select>
             </div>
-            <div class="form-group">
-                <label for="fee-fees-per-term">Fees Per Term (Ksh)</label>
-                <input type="number" id="fee-fees-per-term" class="w-full" placeholder="Total fees per term" required>
-            </div>
-            <div class="form-group">
-                <label for="fee-due-date">Due Date</label>
-                <input type="date" id="fee-due-date" class="w-full" required>
-            </div>
-            <div class="form-group">
-                <label for="fee-academic-year">Academic Year</label>
-                <select id="fee-academic-year" class="w-full p-2 border rounded" required>
-                    <option value="">Select Academic Year</option>
+
+            <div>
+                <label>Academic Year</label>
+                <select id="set-fee-year" class="w-full border p-2 rounded" required>
+                    <option value="">Select Year</option>
                     <option value="2025/2026">2025/2026</option>
                     <option value="2024/2025">2024/2025</option>
                     <option value="2023/2024">2023/2024</option>
                 </select>
             </div>
-            <div class="form-group">
-                <label for="fee-academic-term">Academic Term</label>
-                <select id="fee-academic-term" class="w-full p-2 border rounded" required>
+
+            <div>
+                <label>Term</label>
+                <select id="set-fee-term" class="w-full border p-2 rounded" required>
                     <option value="">Select Term</option>
                     <option value="Term 1">Term 1</option>
                     <option value="Term 2">Term 2</option>
                     <option value="Term 3">Term 3</option>
                 </select>
             </div>
-            <div class="form-group md:col-span-2">
-                <label for="fee-notes">Notes</label>
-                <textarea id="fee-notes" class="w-full" rows="2" placeholder="Any additional notes"></textarea>
+
+            <div>
+                <label>Total Fees (Ksh)</label>
+                <input type="number" id="set-fee-amount" class="w-full border p-2 rounded" required>
             </div>
-            <div class="form-group md:col-span-2 flex gap-4">
-                <button type="submit" class="btn btn-primary flex-1">
-                    <i class="fas fa-save mr-2"></i>Add Fees for Class
+
+            <div class="md:col-span-3">
+                <button type="submit" class="btn btn-primary w-full">
+                    Set Fees For All Students In Class
                 </button>
             </div>
         </form>
     </div>
+
+    <!-- ================= RECORD PAYMENT ================= -->
+    <div class="form-container mb-6">
+        <h3 class="text-lg font-semibold mb-3">Record Student Payment</h3>
+
+        <form id="record-payment-form" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+            <div>
+                <label>Student</label>
+                <select id="payment-student" class="w-full border p-2 rounded" required>
+                    <option value="">Select Student</option>
+                </select>
+            </div>
+
+            <div>
+                <label>Amount Paid (Ksh)</label>
+                <input type="number" id="payment-amount" class="w-full border p-2 rounded" required>
+            </div>
+
+            <div>
+                <label>Payment Date</label>
+                <input type="date" id="payment-date" class="w-full border p-2 rounded" required>
+            </div>
+
+            <div class="md:col-span-3">
+                <button type="submit" class="btn btn-success w-full">
+                    Record Payment & Generate Receipt
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- ================= FEES TABLE ================= -->
+    <div class="form-container">
+        <h3 class="text-lg font-semibold mb-3">Fee Records</h3>
+
+        <div class="overflow-x-auto">
+            <table class="min-w-full border border-gray-200">
+                <thead class="bg-gray-100">
+                    <tr>
+                        <th class="p-2 border">Student</th>
+                        <th class="p-2 border">Class</th>
+                        <th class="p-2 border">Year</th>
+                        <th class="p-2 border">Term</th>
+                        <th class="p-2 border">Total Fees</th>
+                        <th class="p-2 border">Paid</th>
+                        <th class="p-2 border">Balance</th>
+                        <th class="p-2 border">Status</th>
+                        <th class="p-2 border">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="finance-table-body">
+                    <!-- JS will populate -->
+                </tbody>
+            </table>
+        </div>
+    </div>
 </section>
-
-<script>
-const feeForm = document.getElementById("fee-form");
-
-// Example: dynamically populate classes (optional if already in HTML)
-const classes = ["Grade 1", "Grade 2", "Grade 3", "Grade 4", "Grade 5", "Grade 6"];
-const classSelect = document.getElementById("fee-class-name");
-classes.forEach(cls => {
-    classSelect.innerHTML += `<option value="${cls}">${cls}</option>`;
-});
-
-// Handle form submission
-feeForm.addEventListener("submit", async function(e) {
-    e.preventDefault();
-
-    const className = classSelect.value;
-    const feesPerTerm = parseFloat(document.getElementById("fee-fees-per-term").value);
-    const dueDate = document.getElementById("fee-due-date").value;
-    const academicYear = document.getElementById("fee-academic-year").value;
-    const academicTerm = document.getElementById("fee-academic-term").value;
-    const notes = document.getElementById("fee-notes").value;
-
-    if(!className || !feesPerTerm || !dueDate || !academicYear || !academicTerm) {
-        alert("Please fill all required fields.");
-        return;
-    }
-
-    try {
-        // Fetch students from backend
-        const response = await fetch(`/api/getStudents?class=${encodeURIComponent(className)}`);
-        if(!response.ok) throw new Error("Failed to fetch students");
-
-        const students = await response.json(); // ["Alice", "Bob", ...]
-
-        if(students.length === 0) {
-            alert(`No students found in ${className}.`);
-            return;
-        }
-
-        // Send fee record for all students
-        const addResponse = await fetch(`/api/addFeesForClass`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                className,
-                students,
-                feesPerTerm,
-                dueDate,
-                academicYear,
-                academicTerm,
-                notes
-            })
-        });
-
-        if(!addResponse.ok) throw new Error("Failed to add fees");
-
-        alert(`Fees added for ${students.length} student(s) in ${className}.`);
-
-        // Reset form
-        feeForm.reset();
-
-    } catch(err) {
-        console.error(err);
-        alert("An error occurred while adding fees.");
-    }
-});
-</script>
  
 
         <!-- Attendance Management Section -->
