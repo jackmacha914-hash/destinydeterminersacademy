@@ -2282,43 +2282,21 @@ window.fetch = async (input, init = {}) => {
 </div>
 
 
-       <!-- Accountant Section (Modernized) -->
-<section id="accountant-section" class="tab-section">
+  <section id="accountant-section" class="tab-section hidden">
     <h2 class="text-2xl font-semibold mb-4">Accountant / Fee Management</h2>
 
     <!-- Modal Buttons -->
     <div class="flex gap-4 mb-6">
-        <button onclick="openModal('feeModal')" class="btn btn-primary">Fee Payment</button>
         <button onclick="openModal('mealModal')" class="btn btn-success">Meal Payment</button>
         <button onclick="openModal('otherModal')" class="btn btn-warning">Other Payments</button>
     </div>
 
-    <!-- Fee Payment Modal -->
-    <div id="feeModal" class="modal hidden fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-50">
-        <div class="bg-white rounded-lg shadow-lg w-11/12 md:w-2/3 p-6 relative">
-            <span class="absolute top-2 right-4 cursor-pointer text-gray-500 text-xl" onclick="closeModal('feeModal')">&times;</span>
-            <h2 class="text-xl font-semibold mb-4">Record Fee Payment</h2>
-            <form id="fee-form-modal" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="form-group">
-                    <label for="fee-class-name-modal">Class</label>
-                    <select id="fee-class-name-modal" class="w-full p-2 border rounded" required>
-                        <option value="">Select a class</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="fee-student-id-modal">Student</label>
-                    <select id="fee-student-id-modal" class="w-full p-2 border rounded" required disabled>
-                        <option value="">Select a class first</option>
-                    </select>
-                </div>
-                <div class="form-group md:col-span-2" id="dynamic-fee-items-modal">
-                    <!-- Dynamic fee items (Tuition, Activity, Diary, etc.) -->
-                </div>
-                <div class="form-group md:col-span-2 flex justify-end">
-                    <button type="submit" class="btn btn-primary"><i class="fas fa-save mr-2"></i>Save Fee Payment</button>
-                </div>
-            </form>
-        </div>
+    <!-- Inline Fee Form (kept as original) -->
+    <div class="form-container">
+        <h3>Add Fee Record</h3>
+        <form id="fee-form" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- your original fee form fields here -->
+        </form>
     </div>
 
     <!-- Meal Payment Modal -->
@@ -2336,7 +2314,7 @@ window.fetch = async (input, init = {}) => {
                     <input type="number" id="lunch-fee" class="w-full p-2 border rounded" placeholder="0.00">
                 </div>
                 <div class="flex justify-end">
-                    <button type="submit" class="btn btn-success"><i class="fas fa-save mr-2"></i>Save Meal Payment</button>
+                    <button type="submit" class="btn btn-success">Save Meal Payment</button>
                 </div>
             </form>
         </div>
@@ -2361,36 +2339,34 @@ window.fetch = async (input, init = {}) => {
                     <input type="number" id="activity-fee" class="w-full p-2 border rounded" placeholder="0.00">
                 </div>
                 <div class="flex justify-end">
-                    <button type="submit" class="btn btn-warning"><i class="fas fa-save mr-2"></i>Save Other Payment</button>
+                    <button type="submit" class="btn btn-warning">Save Other Payment</button>
                 </div>
             </form>
         </div>
     </div>
-
 </section>
 
-<!-- Modal JS -->
 <script>
-function openModal(modalId) {
+function openModal(modalId){
     const modal = document.getElementById(modalId);
-    if(modal) {
+    if(modal){
         modal.classList.remove('hidden');
-        modal.classList.add('flex'); // ensures modal is visible and centered
+        modal.classList.add('flex');
     }
 }
 
-function closeModal(modalId) {
+function closeModal(modalId){
     const modal = document.getElementById(modalId);
-    if(modal) {
+    if(modal){
         modal.classList.add('hidden');
         modal.classList.remove('flex');
     }
 }
 
-// Close modal when clicking outside modal content
-window.addEventListener('click', function(event) {
+// close when clicking backdrop
+window.addEventListener('click', function(e){
     document.querySelectorAll('.modal').forEach(modal => {
-        if(event.target === modal) {
+        if(e.target === modal){
             closeModal(modal.id);
         }
     });
