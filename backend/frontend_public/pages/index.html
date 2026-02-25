@@ -2282,94 +2282,115 @@ window.fetch = async (input, init = {}) => {
 </div>
 
 
-  <section id="accountant-section" class="tab-section hidden">
-    <h2 class="text-2xl font-semibold mb-4">Accountant / Fee Management</h2>
+ <section id="accountant-section" class="tab-section block">
+  <h2 class="text-2xl font-semibold mb-4">Accountant / Fee Management</h2>
 
-    <!-- Modal Buttons -->
-    <div class="flex gap-4 mb-6">
-        <button onclick="openModal('mealModal')" class="btn btn-success">Meal Payment</button>
-        <button onclick="openModal('otherModal')" class="btn btn-warning">Other Payments</button>
-    </div>
+  <!-- Modal Buttons -->
+  <div class="flex gap-4 mb-6">
+    <button onclick="openModal('feeModal')" class="btn btn-primary">Fee Payment</button>
+    <button onclick="openModal('mealModal')" class="btn btn-success">Meal Payment</button>
+    <button onclick="openModal('otherModal')" class="btn btn-warning">Other Payments</button>
+  </div>
 
-    <!-- Inline Fee Form (kept as original) -->
-    <div class="form-container">
-        <h3>Add Fee Record</h3>
-        <form id="fee-form" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <!-- your original fee form fields here -->
-        </form>
-    </div>
-
-    <!-- Meal Payment Modal -->
-    <div id="mealModal" class="modal hidden fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-50">
-        <div class="bg-white rounded-lg shadow-lg w-11/12 md:w-1/3 p-6 relative">
-            <span class="absolute top-2 right-4 cursor-pointer text-gray-500 text-xl" onclick="closeModal('mealModal')">&times;</span>
-            <h2 class="text-xl font-semibold mb-4">Record Meal Payment</h2>
-            <form id="meal-form" class="space-y-4">
-                <div>
-                    <label for="breakfast-fee" class="block font-medium mb-1">Breakfast Fee</label>
-                    <input type="number" id="breakfast-fee" class="w-full p-2 border rounded" placeholder="0.00">
-                </div>
-                <div>
-                    <label for="lunch-fee" class="block font-medium mb-1">Lunch Fee</label>
-                    <input type="number" id="lunch-fee" class="w-full p-2 border rounded" placeholder="0.00">
-                </div>
-                <div class="flex justify-end">
-                    <button type="submit" class="btn btn-success">Save Meal Payment</button>
-                </div>
-            </form>
+  <!-- Fee Payment Modal -->
+  <div id="feeModal" class="modal hidden fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-50">
+    <div class="bg-white rounded-lg shadow-lg w-11/12 md:w-2/3 p-6 relative">
+      <span class="absolute top-2 right-4 cursor-pointer text-gray-500 text-xl" onclick="closeModal('feeModal')">&times;</span>
+      <h2 class="text-xl font-semibold mb-4">Record Fee Payment</h2>
+      <form id="fee-form-modal" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="form-group">
+          <label for="fee-class-name-modal">Class</label>
+          <select id="fee-class-name-modal" class="w-full p-2 border rounded" required>
+            <option value="">Select a class</option>
+          </select>
         </div>
-    </div>
-
-    <!-- Other Payments Modal -->
-    <div id="otherModal" class="modal hidden fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-50">
-        <div class="bg-white rounded-lg shadow-lg w-11/12 md:w-1/3 p-6 relative">
-            <span class="absolute top-2 right-4 cursor-pointer text-gray-500 text-xl" onclick="closeModal('otherModal')">&times;</span>
-            <h2 class="text-xl font-semibold mb-4">Record Other Payments</h2>
-            <form id="other-form" class="space-y-4">
-                <div>
-                    <label for="admission-fee" class="block font-medium mb-1">Admission Fee</label>
-                    <input type="number" id="admission-fee" class="w-full p-2 border rounded" placeholder="0.00">
-                </div>
-                <div>
-                    <label for="diary-fee" class="block font-medium mb-1">Diary / Assessment Fee</label>
-                    <input type="number" id="diary-fee" class="w-full p-2 border rounded" placeholder="0.00">
-                </div>
-                <div>
-                    <label for="activity-fee" class="block font-medium mb-1">Activity Fee</label>
-                    <input type="number" id="activity-fee" class="w-full p-2 border rounded" placeholder="0.00">
-                </div>
-                <div class="flex justify-end">
-                    <button type="submit" class="btn btn-warning">Save Other Payment</button>
-                </div>
-            </form>
+        <div class="form-group">
+          <label for="fee-student-id-modal">Student</label>
+          <select id="fee-student-id-modal" class="w-full p-2 border rounded" required disabled>
+            <option value="">Select a class first</option>
+          </select>
         </div>
+        <div class="form-group md:col-span-2" id="dynamic-fee-items-modal">
+          <!-- Dynamic fee items -->
+        </div>
+        <div class="form-group md:col-span-2 flex justify-end">
+          <button type="submit" class="btn btn-primary">Save Fee Payment</button>
+        </div>
+      </form>
     </div>
+  </div>
+
+  <!-- Meal Payment Modal -->
+  <div id="mealModal" class="modal hidden fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-50">
+    <div class="bg-white rounded-lg shadow-lg w-11/12 md:w-1/3 p-6 relative">
+      <span class="absolute top-2 right-4 cursor-pointer text-gray-500 text-xl" onclick="closeModal('mealModal')">&times;</span>
+      <h2 class="text-xl font-semibold mb-4">Record Meal Payment</h2>
+      <form id="meal-form" class="space-y-4">
+        <div>
+          <label for="breakfast-fee" class="block font-medium mb-1">Breakfast Fee</label>
+          <input type="number" id="breakfast-fee" class="w-full p-2 border rounded" placeholder="0.00">
+        </div>
+        <div>
+          <label for="lunch-fee" class="block font-medium mb-1">Lunch Fee</label>
+          <input type="number" id="lunch-fee" class="w-full p-2 border rounded" placeholder="0.00">
+        </div>
+        <div class="flex justify-end">
+          <button type="submit" class="btn btn-success">Save Meal Payment</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Other Payments Modal -->
+  <div id="otherModal" class="modal hidden fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-50">
+    <div class="bg-white rounded-lg shadow-lg w-11/12 md:w-1/3 p-6 relative">
+      <span class="absolute top-2 right-4 cursor-pointer text-gray-500 text-xl" onclick="closeModal('otherModal')">&times;</span>
+      <h2 class="text-xl font-semibold mb-4">Record Other Payments</h2>
+      <form id="other-form" class="space-y-4">
+        <div>
+          <label for="admission-fee" class="block font-medium mb-1">Admission Fee</label>
+          <input type="number" id="admission-fee" class="w-full p-2 border rounded" placeholder="0.00">
+        </div>
+        <div>
+          <label for="diary-fee" class="block font-medium mb-1">Diary / Assessment Fee</label>
+          <input type="number" id="diary-fee" class="w-full p-2 border rounded" placeholder="0.00">
+        </div>
+        <div>
+          <label for="activity-fee" class="block font-medium mb-1">Activity Fee</label>
+          <input type="number" id="activity-fee" class="w-full p-2 border rounded" placeholder="0.00">
+        </div>
+        <div class="flex justify-end">
+          <button type="submit" class="btn btn-warning">Save Other Payment</button>
+        </div>
+      </form>
+    </div>
+  </div>
 </section>
 
 <script>
 function openModal(modalId){
-    const modal = document.getElementById(modalId);
-    if(modal){
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
-    }
+  const modal = document.getElementById(modalId);
+  if(modal){
+    modal.classList.remove('hidden'); 
+    modal.classList.add('flex'); // ensures modal is visible and centered
+  }
 }
 
 function closeModal(modalId){
-    const modal = document.getElementById(modalId);
-    if(modal){
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
-    }
+  const modal = document.getElementById(modalId);
+  if(modal){
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+  }
 }
 
-// close when clicking backdrop
+// Close modal on clicking outside
 window.addEventListener('click', function(e){
-    document.querySelectorAll('.modal').forEach(modal => {
-        if(e.target === modal){
-            closeModal(modal.id);
-        }
-    });
+  document.querySelectorAll('.modal').forEach(modal => {
+    if(e.target === modal){
+      closeModal(modal.id);
+    }
+  });
 });
 </script>
 
