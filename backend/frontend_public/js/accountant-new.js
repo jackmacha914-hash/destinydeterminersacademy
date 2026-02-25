@@ -527,16 +527,57 @@ function initializeFeeForm() {
             thirdInstallment: parseCurrency(thirdInstallmentInput?.value) || 0
         };
 // radio  for fee classes
-        const feeModeRadios = document.querySelectorAll('input[name="fee-mode"]');
+      const feeModeRadios = document.querySelectorAll('input[name="fee-mode"]');
 const studentSelect = document.getElementById('fee-student-id');
+const classSelect = document.getElementById('fee-class-name');
 
+async function fetchStudents(className) {
+  try {
+    const res = await fetch(`https://destinydeterminersacademy.onrender.com/api/students/class/${encodeURIComponent(className)}`, {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}` // or your auth method
+      }
+    });
+    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+    const students = await res.json();
+    populateStudentDropdown(students);
+  } catch (err) {
+    console.error("Error loading students:", err);
+    loadMockStudents(); // fallback
+  }
+}
+
+function populateStudentDropdown(students) {
+  studentSelect.innerHTML = '<option value="">Select a student</option>';
+  students.forEach(s => {
+    const option = document.createElement('option');
+    option.value = s.id;
+    option.textContent = `${s.name} (${s.admNumber})`;
+    studentSelect.appendChild(option);
+  });
+}
+
+// Handle class change
+classSelect.addEventListener('change', () => {
+  const selectedMode = document.querySelector('input[name="fee-mode"]:checked').value;
+  if (selectedMode === 'student') {
+    studentSelect.disabled = false;
+    if (classSelect.value) fetchStudents(classSelect.value);
+  } else {
+    studentSelect.disabled = true;
+    studentSelect.value = '';
+  }
+});
+
+// Handle fee mode change
 feeModeRadios.forEach(radio => {
   radio.addEventListener('change', () => {
     if (radio.value === 'class' && radio.checked) {
       studentSelect.disabled = true;
-      studentSelect.value = ''; // clear selection
+      studentSelect.value = '';
     } else if (radio.value === 'student' && radio.checked) {
       studentSelect.disabled = false;
+      if (classSelect.value) fetchStudents(classSelect.value);
     }
   });
 });
