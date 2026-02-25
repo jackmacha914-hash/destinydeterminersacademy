@@ -660,24 +660,82 @@ if (this.feesYearFilter) {
             return;
         }
 
-        // Get the fee details
+        // Get fee details
         const fee = await this.getFeeById(feeId);
-        if (!fee) {
-            throw new Error('Fee record not found');
-        }
-        console.log('Current fee data:', fee);
+        if (!fee) throw new Error('Fee record not found');
 
         // Calculate balance
         const totalFees = parseFloat(fee.totalFees || fee.amount || 0);
         const paidAmount = parseFloat(fee.paidAmount || fee.amountPaid || 0);
         const balance = totalFees - paidAmount;
 
-        console.log('Payment calculations:', { totalFees, paidAmount, balance });
-
         if (balance <= 0) {
             this.showNotification('This fee is already fully paid', 'info');
             return;
         }
+
+        // Show modal and wait for user input
+        const paymentData = await this.showPaymentModal(fee, balance);
+        if (!paymentData) return; // user cancelled
+
+        console.log('Submitting payment:', paymentData);
+
+        // Disable button
+        const paymentBtn = document.querySelector(`[data-action="record-payment"][data-fee-id="${feeId}"]`);
+        const originalText = paymentBtn?.textContent || 'Record Payment';
+        if (paymentBtn) {
+            paymentBtn.disabled = true;
+            paymentBtn.textContent = 'Processing...';
+        }
+
+        // Submit payment to backend
+        const response = await fetch(`https://destinydeterminersacademy.onrender.com/api/fees/${feeId}/payments`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(paymentData)
+        });
+
+        if (!response.ok) {
+            const text = await response.text();
+            throw new Error(`Payment failed: ${text}`);
+        }
+
+        const updatedFee = (await response.json()).fee || await response.json();
+
+        // Refresh table
+        if (typeof this.loadFeesWithFilters === 'function') {
+            await this.loadFeesWithFilters();
+        }
+
+        // Show receipt
+        this.generateReceipt({
+            studentName: fee.studentName,
+            className: fee.className,
+            paymentAmount: paymentData.amount,
+            balance: balance - paymentData.amount,
+            paymentMethod: paymentData.paymentMethod,
+            reference: paymentData.reference
+        });
+
+        this.showNotification('Payment recorded successfully', 'success');
+
+    } catch (error) {
+        console.error('Error in recordPayment:', error);
+        this.showNotification(`Error: ${error.message || 'Failed to record payment'}`, 'error');
+    } finally {
+        const paymentBtn = document.querySelector(`[data-action="record-payment"][data-fee-id="${feeId}"]`);
+        if (paymentBtn) {
+            paymentBtn.disabled = false;
+            paymentBtn.textContent = 'Record Payment';
+        }
+    }
+}
+
+// Keep your showPaymentModal helper as is
 
         // Show payment modal and wait for user input
         const paymentData = await this.showPaymentModal(fee, balance);
