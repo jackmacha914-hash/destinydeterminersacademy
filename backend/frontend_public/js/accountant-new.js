@@ -527,15 +527,18 @@ function initializeFeeForm() {
             thirdInstallment: parseCurrency(thirdInstallmentInput?.value) || 0
         };
 // radio  for fee classes
-      const feeModeRadios = document.querySelectorAll('input[name="fee-mode"]');
+ // Elements
+const feeModeRadios = document.querySelectorAll('input[name="fee-mode"]');
 const studentSelect = document.getElementById('fee-student-id');
 const classSelect = document.getElementById('fee-class-name');
+const feeForm = document.getElementById('fee-form');
 
+// Fetch students from API
 async function fetchStudents(className) {
   try {
     const res = await fetch(`https://destinydeterminersacademy.onrender.com/api/students/class/${encodeURIComponent(className)}`, {
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}` // or your auth method
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
       }
     });
     if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
@@ -543,10 +546,11 @@ async function fetchStudents(className) {
     populateStudentDropdown(students);
   } catch (err) {
     console.error("Error loading students:", err);
-    loadMockStudents(); // fallback
+    loadMockStudents(); // fallback for testing
   }
 }
 
+// Populate student dropdown
 function populateStudentDropdown(students) {
   studentSelect.innerHTML = '<option value="">Select a student</option>';
   students.forEach(s => {
@@ -565,7 +569,7 @@ classSelect.addEventListener('change', () => {
     if (classSelect.value) fetchStudents(classSelect.value);
   } else {
     studentSelect.disabled = true;
-    studentSelect.value = '';
+    studentSelect.innerHTML = '<option value="">Select a student</option>';
   }
 });
 
@@ -574,12 +578,91 @@ feeModeRadios.forEach(radio => {
   radio.addEventListener('change', () => {
     if (radio.value === 'class' && radio.checked) {
       studentSelect.disabled = true;
-      studentSelect.value = '';
+      studentSelect.innerHTML = '<option value="">Select a student</option>';
     } else if (radio.value === 'student' && radio.checked) {
       studentSelect.disabled = false;
       if (classSelect.value) fetchStudents(classSelect.value);
     }
   });
+});
+
+// Form submission
+feeForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+
+  const feeData = {
+    className: classSelect.value,
+    feesPerTerm: document.getElementById('fee-fees-per-term').value,
+    balance: document.getElementById('fee-bal').value,
+    dueDate: document.getElementById('fee-due-date').value,
+    academicYear: document.getElementById('fee-academic-year').value,
+    academicTerm: document.getElementById('fee-academic-term').value,
+    notes: document.getElementById('fee-notes').value
+  };
+
+  const selectedMode = document.querySelector('input[name="fee-mode"]:checked').value;
+
+  if (selectedMode === 'student') {
+    // Individual Student
+    feeData.studentId = studentSelect.value;
+    if (!feeData.studentId) {
+      alert("Please select a student.");
+      return;
+    }
+
+    try {
+      const res = await fetch(`https://destinydeterminersacademy.onrender.com/api/fees`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify(feeData)
+      });
+      if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+      alert("Fee successfully added for student!");
+    } catch (err) {
+      console.error("Error adding fee:", err);
+      alert("Failed to add fee. Check console for details.");
+    }
+
+  } else {
+    // Whole Class
+    try {
+      const resStudents = await fetch(`https://destinydeterminersacademy.onrender.com/api/students/class/${encodeURIComponent(feeData.className)}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      if (!resStudents.ok) throw new Error(`HTTP error! status: ${resStudents.status}`);
+      const students = await resStudents.json();
+
+      // Send fee data for each student
+      await Promise.all(students.map(async (s) => {
+        const studentFeeData = { ...feeData, studentId: s.id };
+        const res = await fetch(`https://destinydeterminersacademy.onrender.com/api/fees`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+          body: JSON.stringify(studentFeeData)
+        });
+        if (!res.ok) console.error(`Failed for student ${s.name}`, await res.text());
+      }));
+
+      alert(`Fees successfully added for all students in ${feeData.className}!`);
+
+    } catch (err) {
+      console.error("Error adding fees for class:", err);
+      alert("Failed to add fees for class. Check console for details.");
+    }
+  }
+
+  // Reset form
+  feeForm.reset();
+  studentSelect.innerHTML = '<option value="">Select a student</option>';
+  studentSelect.disabled = document.querySelector('input[name="fee-mode"]:checked').value === 'class';
 });
         
         // Add optional fields if they exist
