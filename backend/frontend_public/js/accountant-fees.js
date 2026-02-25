@@ -648,32 +648,108 @@ if (this.feesYearFilter) {
     }
     
     async recordPayment(feeId) {
+    try {
+        console.log('=== Starting recordPayment ===');
+        console.log('Fee ID:', feeId);
+
+        // Ensure user is logged in
+        const token = localStorage.getItem('token');
+        if (!token) {
+            this.showNotification('You must be logged in to record payments', 'error');
+            window.location.href = '/login.html';
+            return;
+        }
+
+        // Get the fee details
+        const fee = await this.getFeeById(feeId);
+        if (!fee) {
+            throw new Error('Fee record not found');
+        }
+        console.log('Current fee data:', fee);
+
+        // Calculate balance
+        const totalFees = parseFloat(fee.totalFees || fee.amount || 0);
+        const paidAmount = parseFloat(fee.paidAmount || fee.amountPaid || 0);
+        const balance = totalFees - paidAmount;
+
+        console.log('Payment calculations:', { totalFees, paidAmount, balance });
+
+        if (balance <= 0) {
+            this.showNotification('This fee is already fully paid', 'info');
+            return;
+        }
+
+        // Show payment modal and wait for user input
+        const paymentData = await this.showPaymentModal(fee, balance);
+        if (!paymentData) {
+            console.log('Payment canceled by user');
+            return; // User cancelled the modal
+        }
+
+        console.log('Submitting payment:', paymentData);
+
+        // Disable the Record Payment button
+        const paymentBtn = document.querySelector(`[data-action="record-payment"][data-fee-id="${feeId}"]`);
+        const originalText = paymentBtn ? paymentBtn.textContent : 'Record Payment';
+        if (paymentBtn) {
+            paymentBtn.disabled = true;
+            paymentBtn.textContent = 'Processing...';
+        }
+
         try {
-            console.log('=== Starting recordPayment ===');
-            console.log('Fee ID:', feeId);
-            
-            // Get the fee details with payments
-            const fee = await this.getFeeById(feeId);
-            if (!fee) {
-                throw new Error('Fee record not found');
+            // Send payment to backend
+            const response = await fetch(
+                `https://destinydeterminersacademy.onrender.com/api/fees/${feeId}/payments`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(paymentData)
+                }
+            );
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Payment failed: ${errorText}`);
             }
-            
-            console.log('Current fee data:', fee);
-            
-            // Calculate balance
-            const totalFees = parseFloat(fee.totalFees || fee.amount || 0);
-            const paidAmount = parseFloat(fee.paidAmount || fee.amountPaid || 0);
-            const balance = totalFees - paidAmount;
-            
-            console.log('Payment calculations:', { totalFees, paidAmount, balance });
-            
-            if (balance <= 0) {
-                this.showNotification('This fee is already fully paid', 'info');
-                return;
+
+            const responseData = await response.json();
+
+            // Refresh fee table
+            await this.loadFeesWithFilters();
+
+            // Print receipt
+            this.generateReceipt({
+                studentName: fee.studentName,
+                className: fee.className,
+                paymentAmount: paymentData.amount,
+                balance: balance - paymentData.amount,
+                paymentMethod: paymentData.paymentMethod,
+                reference: paymentData.reference
+            });
+
+            this.showNotification('Payment recorded successfully', 'success');
+        } catch (err) {
+            console.error(err);
+            this.showNotification('Failed to record payment. Check console.', 'error');
+        } finally {
+            if (paymentBtn) {
+                paymentBtn.disabled = false;
+                paymentBtn.textContent = originalText;
             }
-            
-            // Show a payment modal or form
-            // Open modal
+        }
+    } catch (err) {
+        console.error(err);
+        this.showNotification('Error recording payment', 'error');
+    }
+}
+
+// Helper function to show modal and return a Promise
+async showPaymentModal(fee, balance) {
+    return new Promise((resolve) => {
         const modal = document.getElementById('payment-modal');
         const studentInfo = document.getElementById('modal-student-info');
         const balanceInfo = document.getElementById('modal-balance-info');
@@ -709,81 +785,32 @@ if (this.feesYearFilter) {
 
         cancelBtn.onclick = () => {
             modal.classList.add('hidden');
+            resolve(null); // User cancelled
         };
 
-        submitBtn.onclick = async () => {
-            const paymentAmount = parseFloat(amountInput.value);
-            if (!paymentAmount || paymentAmount <= 0) {
+        submitBtn.onclick = () => {
+            const amount = parseFloat(amountInput.value);
+            if (!amount || amount <= 0) {
                 alert('Enter a valid payment amount');
                 return;
             }
-            if (paymentAmount > balance) {
+            if (amount > balance) {
                 alert(`Amount cannot exceed balance of Ksh ${balance}`);
                 return;
             }
 
             const paymentData = {
-                amount: paymentAmount,
+                amount,
                 paymentMethod: methodSelect.value,
                 reference: referenceInput.value || `PAY-${Date.now()}`,
                 notes: notesInput.value || ''
             };
 
-            // Disable button while processing
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Processing...';
-
-            try {
-                const token = localStorage.getItem('token');
-                const response = await fetch(`https://destinydeterminersacademy.onrender.com/api/fees/${feeId}/payments`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify(paymentData)
-                });
-
-                if (!response.ok) throw new Error('Payment failed');
-
-                const responseData = await response.json();
-                modal.classList.add('hidden');
-
-                // Refresh fee table
-                await this.loadFeesWithFilters();
-
-                // Print receipt
-                this.generateReceipt({
-                    studentName: fee.studentName,
-                    className: fee.className,
-                    paymentAmount,
-                    balance: balance - paymentAmount,
-                    paymentMethod: paymentData.paymentMethod,
-                    reference: paymentData.reference
-                });
-
-                this.showNotification('Payment recorded successfully', 'success');
-            } catch (err) {
-                console.error(err);
-                alert('Failed to record payment. Check console.');
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Submit';
-            }
+            modal.classList.add('hidden');
+            resolve(paymentData);
         };
-    } catch (err) {
-        console.error(err);
-        this.showNotification('Error recording payment', 'error');
-    }
-
-            
-            const token = localStorage.getItem('token');
-            if (!token) {
-                this.showNotification('You must be logged in to record payments', 'error');
-                window.location.href = '/login.html';
-                return;
-            }
+    });
+}
             
             // Show loading state
             const paymentBtn = document.querySelector(`[data-action="record-payment"][data-fee-id="${feeId}"]`);
