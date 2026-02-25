@@ -81,18 +81,13 @@
                             <label for="fee-bal" class="block text-sm font-medium text-gray-700 mb-1">Balance</label>
                             <input type="text" id="fee-bal" class="w-full p-2 border rounded-md bg-gray-100" readonly>
                         </div>
-                        <div>
-                            <label for="fee-first-installment" class="block text-sm font-medium text-gray-700 mb-1">1st Installment</label>
-                            <input type="text" id="fee-first-installment" class="w-full p-2 border rounded-md" placeholder="0.00">
-                        </div>
-                        <div>
-                            <label for="fee-second-installment" class="block text-sm font-medium text-gray-700 mb-1">2nd Installment</label>
-                            <input type="text" id="fee-second-installment" class="w-full p-2 border rounded-md" placeholder="0.00">
-                        </div>
-                        <div>
-                            <label for="fee-third-installment" class="block text-sm font-medium text-gray-700 mb-1">3rd Installment</label>
-                            <input type="text" id="fee-third-installment" class="w-full p-2 border rounded-md" placeholder="0.00">
-                        </div>
+                        <div id="dynamic-fee-items" class="space-y-2">
+                         <!-- JS will inject fee rows like this -->
+                           <div class="flex gap-2 items-center">
+                           <span class="w-1/2 font-medium" data-feetype="Tuition">Tuition</span>
+                           <input type="number" class="fee-input w-1/2 p-2 border rounded-md" data-feetype="Tuition" placeholder="0.00">
+                         </div>
+                         </div>
                         <div class="flex items-end">
                             <button type="submit" class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
                                 Record Payment
