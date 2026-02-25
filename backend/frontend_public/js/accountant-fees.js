@@ -649,6 +649,79 @@ if (this.feesYearFilter) {
     
 class AccountantFees {
 
+    constructor() {
+        this.feesTableBody = document.querySelector('#fees-table tbody'); // your table body
+    }
+
+    /* ================================
+       LOAD AND RENDER FEES
+    ================================= */
+    async loadFeesWithFilters() {
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) throw new Error('Not logged in');
+
+            const response = await fetch('https://destinydeterminersacademy.onrender.com/api/fees', {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                const text = await response.text();
+                throw new Error(`Failed to fetch fees: ${text}`);
+            }
+
+            const data = await response.json();
+            this.renderFees(data.fees || data);
+
+        } catch (err) {
+            console.error('Error loading fees:', err);
+            this.showNotification(err.message || 'Failed to load fees', 'error');
+        }
+    }
+
+    renderFees(fees) {
+        if (!this.feesTableBody) return;
+
+        this.feesTableBody.innerHTML = ''; // clear old rows
+
+        fees.forEach(fee => {
+            const row = document.createElement('tr');
+            row.dataset.feeId = fee._id || fee.id;
+
+            row.innerHTML = `
+                <td>${fee.studentName}</td>
+                <td>${fee.className}</td>
+                <td>${fee.totalFees}</td>
+                <td>${fee.paidAmount || 0}</td>
+                <td>${(fee.totalFees - (fee.paidAmount || 0))}</td>
+                <td>${fee.term || ''}</td>
+                <td>${fee.status || ''}</td>
+                <td>${fee.dueDate || ''}</td>
+                <td>${fee.academicYear || ''}</td>
+                <td>
+                    <button data-action="record-payment" data-fee-id="${fee._id || fee.id}">
+                        Record Payment
+                    </button>
+                </td>
+            `;
+
+            this.feesTableBody.appendChild(row);
+
+            const btn = row.querySelector('[data-action="record-payment"]');
+            btn.addEventListener('click', () => this.recordPayment(fee._id || fee.id));
+        });
+    }
+
+    /* ================================
+       NOTIFICATIONS
+    ================================= */
+    showNotification(message, type = 'info') {
+        alert(`${type.toUpperCase()}: ${message}`);
+    }
+
     /* ================================
        RECORD PAYMENT
     ================================= */
@@ -657,15 +730,10 @@ class AccountantFees {
         let originalText = 'Record Payment';
 
         try {
-            console.log('=== Starting recordPayment ===');
-            console.log('Fee ID:', feeId);
+            console.log('=== Starting recordPayment ===', feeId);
 
             const token = localStorage.getItem('token');
-            if (!token) {
-                this.showNotification('You must be logged in to record payments', 'error');
-                window.location.href = '/login.html';
-                return;
-            }
+            if (!token) throw new Error('Not logged in');
 
             const fee = await this.getFeeById(feeId);
             if (!fee) throw new Error('Fee record not found');
@@ -679,22 +747,16 @@ class AccountantFees {
                 return;
             }
 
-            // Show payment modal
             const paymentData = await this.showPaymentModal(fee, balance);
             if (!paymentData) return;
 
-            // Disable button
-            paymentBtn = document.querySelector(
-                `[data-action="record-payment"][data-fee-id="${feeId}"]`
-            );
-
+            paymentBtn = document.querySelector(`[data-action="record-payment"][data-fee-id="${feeId}"]`);
             if (paymentBtn) {
                 originalText = paymentBtn.textContent;
                 paymentBtn.disabled = true;
                 paymentBtn.textContent = 'Processing...';
             }
 
-            // Send payment to backend
             const response = await fetch(
                 `https://destinydeterminersacademy.onrender.com/api/fees/${feeId}/payments`,
                 {
@@ -715,12 +777,10 @@ class AccountantFees {
 
             await response.json();
 
-            // Reload table safely
             if (typeof this.loadFeesWithFilters === 'function') {
                 await this.loadFeesWithFilters();
             }
 
-            // Generate receipt
             this.generateReceipt({
                 studentName: fee.studentName,
                 className: fee.className,
@@ -734,10 +794,7 @@ class AccountantFees {
 
         } catch (error) {
             console.error('Error in recordPayment:', error);
-            this.showNotification(
-                error.message || 'Failed to record payment',
-                'error'
-            );
+            this.showNotification(error.message || 'Failed to record payment', 'error');
         } finally {
             if (paymentBtn) {
                 paymentBtn.disabled = false;
@@ -746,19 +803,13 @@ class AccountantFees {
         }
     }
 
-
     /* ================================
        SHOW PAYMENT MODAL
     ================================= */
     async showPaymentModal(fee, balance) {
         return new Promise((resolve) => {
-
             const modal = document.getElementById('payment-modal');
-            if (!modal) {
-                console.error('Payment modal not found in HTML');
-                resolve(null);
-                return;
-            }
+            if (!modal) return resolve(null);
 
             const studentInfo = document.getElementById('modal-student-info');
             const balanceInfo = document.getElementById('modal-balance-info');
@@ -770,15 +821,11 @@ class AccountantFees {
             const cancelBtn = document.getElementById('payment-cancel');
             const submitBtn = document.getElementById('payment-submit');
 
-            // Safety check
-            if (!studentInfo || !balanceInfo || !amountInput || !methodSelect ||
-                !referenceInput || !referenceLabel || !cancelBtn || !submitBtn) {
+            if (!studentInfo || !balanceInfo || !amountInput || !methodSelect || !referenceInput || !referenceLabel || !cancelBtn || !submitBtn) {
                 console.error('Some modal elements are missing in HTML');
-                resolve(null);
-                return;
+                return resolve(null);
             }
 
-            // Populate data
             studentInfo.textContent = `${fee.studentName} (${fee.className})`;
             balanceInfo.textContent = `Balance: Ksh ${balance.toLocaleString()}`;
 
@@ -789,12 +836,10 @@ class AccountantFees {
 
             referenceInput.classList.add('hidden');
             referenceLabel.classList.add('hidden');
-
             modal.classList.remove('hidden');
 
-            // Show reference only for Mpesa / Bank
             methodSelect.onchange = () => {
-                if (['Mpesa', 'Bank'].includes(methodSelect.value)) {
+                if (['Mpesa','Bank'].includes(methodSelect.value)) {
                     referenceInput.classList.remove('hidden');
                     referenceLabel.classList.remove('hidden');
                 } else {
@@ -810,23 +855,13 @@ class AccountantFees {
 
             submitBtn.onclick = () => {
                 const amount = parseFloat(amountInput.value);
-
-                if (!amount || amount <= 0) {
-                    alert('Enter a valid payment amount');
-                    return;
-                }
-
-                if (amount > balance) {
-                    alert(`Amount cannot exceed balance of Ksh ${balance}`);
-                    return;
-                }
+                if (!amount || amount <= 0) { alert('Enter a valid payment amount'); return; }
+                if (amount > balance) { alert(`Amount cannot exceed balance of Ksh ${balance}`); return; }
 
                 const paymentData = {
                     amount,
                     paymentMethod: methodSelect.value,
-                    reference: ['Mpesa', 'Bank'].includes(methodSelect.value)
-                        ? referenceInput.value.trim()
-                        : '',
+                    reference: ['Mpesa','Bank'].includes(methodSelect.value) ? referenceInput.value.trim() : '',
                     notes: notesInput.value.trim()
                 };
 
@@ -836,6 +871,18 @@ class AccountantFees {
         });
     }
 
+    /* ================================
+       DUMMY METHODS (replace with your own)
+    ================================= */
+    async getFeeById(feeId) {
+        // Implement API call or look up from loaded fees
+        // This is just a placeholder:
+        return { _id: feeId, studentName: 'Test Student', className: 'Form 1', totalFees: 1000, paidAmount: 200, term: 'Term 1', status: 'Pending', dueDate: '2026-03-01', academicYear: '2026' };
+    }
+
+    generateReceipt(data) {
+        console.log('Generating receipt:', data);
+    }
 }
     /**
      * View payment history for a specific fee
