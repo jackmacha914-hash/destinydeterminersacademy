@@ -1099,6 +1099,11 @@ class AccountantFees {
 }
 
 // Initialize when the page loads
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     window.accountantFees = new AccountantFees();
+
+    // 🔥 THIS loads the table
+    if (typeof window.accountantFees.loadFeesWithFilters === 'function') {
+        await window.accountantFees.loadFeesWithFilters();
+    }
 });
