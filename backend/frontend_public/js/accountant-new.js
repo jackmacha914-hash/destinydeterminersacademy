@@ -508,146 +508,24 @@ function initializeFeeForm() {
             return;
         }
         
-       // Function to prepare fee data for a single student
-function prepareFeeDataForStudent(studentId) {
-  return {
-    student: studentId, // student ID
-    className: classSelect.options[classSelect.selectedIndex]?.text || '',
-    amount: parseCurrency(totalFeesInput?.value) || 0, // total fees per term
-    status: balance <= 0 ? 'Paid' : 'Pending',
-    date: new Date(),
-    // Academic fields
-    academicYear: academicYearSelect.value,
-    academicTerm: academicTermSelect.value,
-    // Additional fields
-    feesPerTerm: parseCurrency(feesPerTermInput?.value) || 0,
-    bal: parseCurrency(balanceInput?.value) || 0,
-    notes: notesInput.value || ''
-  };
-}
-
-// Submit fee(s)
-async function submitFees() {
-  const selectedMode = document.querySelector('input[name="fee-mode"]:checked').value;
-
-  if (selectedMode === 'student') {
-    // Individual Student Mode
-    if (!studentSelect.value) {
-      alert('Please select a student.');
-      return;
-    }
-
-    const formData = prepareFeeDataForStudent(studentSelect.value);
-
-    try {
-      const res = await fetch('/api/fees', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(formData)
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      alert('Fee successfully added for the student!');
-    } catch (err) {
-      console.error('Error adding fee:', err);
-      alert('Failed to add fee. Check console for details.');
-    }
-
-  } else {
-    // Whole Class Mode
-    try {
-      const resStudents = await fetch(`/api/students/class/${encodeURIComponent(classSelect.value)}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (!resStudents.ok) throw new Error(`HTTP ${resStudents.status}`);
-      const students = await resStudents.json();
-
-      // Prepare fee for each student
-      await Promise.all(students.map(s => {
-        const formData = prepareFeeDataForStudent(s.id);
-        return fetch('/api/fees', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify(formData)
-        });
-      }));
-
-      alert(`Fees successfully added for all students in ${classSelect.value}!`);
-    } catch (err) {
-      console.error('Error adding fees for class:', err);
-      alert('Failed to add fees for the class. Check console for details.');
-    }
-  }
-
-  // Reset the form
-  feeForm.reset();
-  studentSelect.innerHTML = '<option value="">Select a student</option>';
-  studentSelect.disabled = selectedMode === 'class';
-}
-// radio  for fee classes
- // Elements
-const feeModeRadios = document.querySelectorAll('input[name="fee-mode"]');
-const studentSelect = document.getElementById('fee-student-id');
-const classSelect = document.getElementById('fee-class-name');
-const feeForm = document.getElementById('fee-form');
-
-// Fetch students from API
-async function fetchStudents(className) {
-  try {
-    const res = await fetch(`https://destinydeterminersacademy.onrender.com/api/students/class/${encodeURIComponent(className)}`, {
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
-      }
-    });
-    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-    const students = await res.json();
-    populateStudentDropdown(students);
-  } catch (err) {
-    console.error("Error loading students:", err);
-    loadMockStudents(); // fallback for testing
-  }
-}
-
-// Populate student dropdown
-function populateStudentDropdown(students) {
-  studentSelect.innerHTML = '<option value="">Select a student</option>';
-  students.forEach(s => {
-    const option = document.createElement('option');
-    option.value = s.id;
-    option.textContent = `${s.name} (${s.admNumber})`;
-    studentSelect.appendChild(option);
-  });
-}
-
-// Handle class change
-classSelect.addEventListener('change', () => {
-  const selectedMode = document.querySelector('input[name="fee-mode"]:checked').value;
-  if (selectedMode === 'student') {
-    studentSelect.disabled = false;
-    if (classSelect.value) fetchStudents(classSelect.value);
-  } else {
-    studentSelect.disabled = true;
-    studentSelect.innerHTML = '<option value="">Select a student</option>';
-  }
-});
-
-// Handle fee mode change
-feeModeRadios.forEach(radio => {
-  radio.addEventListener('change', () => {
-    if (radio.value === 'class' && radio.checked) {
-      studentSelect.disabled = true;
-      studentSelect.innerHTML = '<option value="">Select a student</option>';
-    } else if (radio.value === 'student' && radio.checked) {
-      studentSelect.disabled = false;
-      if (classSelect.value) fetchStudents(classSelect.value);
-    }
-  });
-});
+        // Prepare the basic fee data that matches the backend model
+        const formData = {
+            student: studentSelect.value,
+            className: classSelect.options[classSelect.selectedIndex]?.text || '',
+            amount: parseCurrency(totalFeesInput?.value) || 0,
+            status: balance <= 0 ? 'Paid' : 'Pending',
+            date: new Date(),
+            // Academic fields (already validated as required)
+            academicYear: academicYear,
+            academicTerm: academicTerm,
+            // Additional fields
+            feesPerTerm: feesPerTerm,
+            bal: balance,
+            // Installment amounts
+            firstInstallment: parseCurrency(firstInstallmentInput?.value) || 0,
+            secondInstallment: parseCurrency(secondInstallmentInput?.value) || 0,
+            thirdInstallment: parseCurrency(thirdInstallmentInput?.value) || 0
+        };
 
 // Form submission
 feeForm.addEventListener('submit', async (e) => {
