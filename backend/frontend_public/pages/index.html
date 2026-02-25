@@ -2446,6 +2446,70 @@ window.fetch = async (input, init = {}) => {
             </div>
         </section>
 
+        <!-- Record Payment Modal -->
+<div id="record-payment-modal" class="modal hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+  <div class="modal-content p-6 bg-white rounded shadow-md w-full max-w-md relative">
+    <button id="close-modal" class="absolute top-2 right-2 text-gray-500 hover:text-gray-700">&times;</button>
+
+    <h3 class="text-xl font-semibold mb-4">Record Payment</h3>
+
+    <form id="record-payment-form" class="grid grid-cols-1 gap-4">
+      <div>
+        <label>Student</label>
+        <input type="text" id="payment-student-name" class="w-full p-2 border rounded" readonly>
+      </div>
+
+      <div>
+        <label>Class</label>
+        <input type="text" id="payment-class-name" class="w-full p-2 border rounded" readonly>
+      </div>
+
+      <div class="flex gap-2">
+        <div class="flex-1">
+          <label>Total Fees (Ksh)</label>
+          <input type="number" id="payment-total-fees" class="w-full p-2 border rounded" readonly>
+        </div>
+        <div class="flex-1">
+          <label>Balance (Ksh)</label>
+          <input type="number" id="payment-balance" class="w-full p-2 border rounded" readonly>
+        </div>
+      </div>
+
+      <div>
+        <label>Amount Paid (Ksh)</label>
+        <input type="number" id="payment-amount" class="w-full p-2 border rounded" required>
+        <p id="amount-error" class="text-red-500 text-sm mt-1 hidden"></p>
+      </div>
+
+      <div>
+        <label>Mode of Payment</label>
+        <select id="payment-mode" class="w-full p-2 border rounded" required>
+          <option value="">Select Mode</option>
+          <option value="Cash">Cash</option>
+          <option value="Bank">Bank</option>
+          <option value="Mpesa">Mpesa</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+
+      <div id="payment-reference-container" class="hidden">
+        <label>Reference Number</label>
+        <input type="text" id="payment-reference" class="w-full p-2 border rounded" placeholder="Enter reference">
+      </div>
+
+      <div>
+        <label>Notes</label>
+        <textarea id="payment-notes" class="w-full p-2 border rounded" rows="2" placeholder="Optional"></textarea>
+      </div>
+
+      <div class="flex gap-4 mt-4">
+        <button type="submit" class="btn btn-primary flex-1">Record Payment</button>
+        <button type="button" id="print-payment-receipt" class="btn btn-secondary flex-1" disabled>Print Receipt</button>
+      </div>
+    </form>
+  </div>
+</div>
+
         <!-- Attendance Management Section -->
         <section id="events-section" class="tab-section" style="display:none; padding: 20px;">
             <h2>Attendance Management</h2>
