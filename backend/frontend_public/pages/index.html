@@ -2280,70 +2280,186 @@ window.fetch = async (input, init = {}) => {
         <button class="btn full" onclick="generateReport()">Generate Report</button>
     </div>
 </div>
+        <!-- Accountant Section (Modernized) -->
+       <!-- Accountant Section (Class-Based Fees) -->
+<section id="accountant-section" class="tab-section" style="display:none;">
+    <h2 class="text-2xl font-semibold mb-4">Accountant / Fee Management</h2>
 
-
- <section id="accountant-section" class="tab-section">
-  <h2>Accountant / Fee Management</h2>
-
-  <!-- Modal Buttons -->
-  <div class="flex gap-4 mb-6">
-    <button onclick="openModal('feeModal')" class="btn btn-primary">Fee Payment</button>
-    <button onclick="openModal('mealModal')" class="btn btn-success">Meal Payment</button>
-    <button onclick="openModal('otherModal')" class="btn btn-warning">Other Payments</button>
-  </div>
-
-  <!-- Fee Modal -->
-  <div id="feeModal" class="modal hidden fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-50">
-    <div class="bg-white p-6 rounded shadow w-1/2 relative">
-      <span class="absolute top-2 right-4 cursor-pointer text-gray-500 text-xl" onclick="closeModal('feeModal')">&times;</span>
-      <h2>Fee Payment</h2>
-      <p>Content for Fee Payment...</p>
+    <div id="fees-bulk-toolbar" style="display:none; margin-bottom: 10px;">
+        <button id="fees-bulk-delete" disabled>Delete Selected</button>
+        <button id="fees-bulk-export" disabled>Export Selected</button>
     </div>
-  </div>
 
-  <!-- Meal Modal -->
-  <div id="mealModal" class="modal hidden fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-50">
-    <div class="bg-white p-6 rounded shadow w-1/2 relative">
-      <span class="absolute top-2 right-4 cursor-pointer text-gray-500 text-xl" onclick="closeModal('mealModal')">&times;</span>
-      <h2>Meal Payment</h2>
-      <p>Content for Meal Payment...</p>
-    </div>
-  </div>
+    <!-- Add Fee Record Form -->
+    <div class="form-container mb-6">
+        <h3>Add Fee Record (Per Class)</h3>
+        <form id="fee-form" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="form-group">
+                <label for="fee-class-name">Class</label>
+                <select id="fee-class-name" class="w-full p-2 border rounded" required>
+                    <option value="">Select a class</option>
+                    <option value="Baby Class">Baby Class</option>
+                    <option value="PP1">PP1</option>
+                    <option value="PP2">PP2</option>
+                    <option value="Grade 1">Grade 1</option>
+                    <option value="Grade 2">Grade 2</option>
+                    <option value="Grade 3">Grade 3</option>
+                    <option value="Grade 4">Grade 4</option>
+                    <option value="Grade 5">Grade 5</option>
+                    <option value="Grade 6">Grade 6</option>
+                    <option value="Grade 7">Grade 7</option>
+                    <option value="Grade 8">Grade 8</option>
+                    <option value="Grade 9">Grade 9</option>
+                    <option value="Grade 10">Grade 10</option>
+                    <option value="Grade 11">Grade 11</option>
+                    <option value="Grade 12">Grade 12</option>
+                </select>
+            </div>
 
-  <!-- Other Modal -->
-  <div id="otherModal" class="modal hidden fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-50">
-    <div class="bg-white p-6 rounded shadow w-1/2 relative">
-      <span class="absolute top-2 right-4 cursor-pointer text-gray-500 text-xl" onclick="closeModal('otherModal')">&times;</span>
-      <h2>Other Payments</h2>
-      <p>Content for Other Payments...</p>
+            <div class="form-group">
+                <label for="fee-total">Total Fees (Ksh)</label>
+                <input type="number" id="fee-total" class="w-full" placeholder="Total fees for the term" required>
+            </div>
+
+            <div class="form-group">
+                <label for="fee-due-date">Due Date</label>
+                <input type="date" id="fee-due-date" class="w-full" required>
+            </div>
+
+            <div class="form-group">
+                <label for="fee-academic-year">Academic Year</label>
+                <select id="fee-academic-year" class="w-full p-2 border rounded" required>
+                    <option value="">Select Academic Year</option>
+                    <option value="2025/2026">2025/2026</option>
+                    <option value="2024/2025">2024/2025</option>
+                    <option value="2023/2024">2023/2024</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="fee-academic-term">Academic Term</label>
+                <select id="fee-academic-term" class="w-full p-2 border rounded" required>
+                    <option value="">Select Term</option>
+                    <option value="Term 1">Term 1</option>
+                    <option value="Term 2">Term 2</option>
+                    <option value="Term 3">Term 3</option>
+                </select>
+            </div>
+
+            <div class="form-group md:col-span-2">
+                <label for="fee-notes">Notes</label>
+                <textarea id="fee-notes" class="w-full" rows="2" placeholder="Any additional notes"></textarea>
+            </div>
+
+            <div class="form-group md:col-span-2">
+                <button type="submit" class="btn btn-primary flex-1">
+                    <i class="fas fa-save mr-2"></i>Save Fee Record
+                </button>
+            </div>
+        </form>
     </div>
-  </div>
+
+    <!-- Fee Records Table -->
+    <div class="form-container">
+        <h3>All Fee Records</h3>
+        <div class="overflow-x-auto">
+            <table id="fee-table" class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th><input type="checkbox" id="select-all-fees"></th>
+                        <th>Student</th>
+                        <th>Class</th>
+                        <th>Total Fees</th>
+                        <th>Paid</th>
+                        <th>Balance</th>
+                        <th>Term</th>
+                        <th>Status</th>
+                        <th>Due Date</th>
+                        <th>Academic Year</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="fee-table-body"></tbody>
+            </table>
+        </div>
+    </div>
 </section>
 
 <script>
-function openModal(id) {
-  const modal = document.getElementById(id);
-  if(modal) {
-    modal.classList.remove('hidden');
-    modal.classList.add('flex'); // make it visible and center
-  }
-}
+/* ===== Example Students Data ===== */
+const students = {
+    "Baby Class": ["Alice", "Bob", "Charlie"],
+    "PP1": ["David", "Eva"],
+    "PP2": ["Fiona", "George"],
+    "Grade 1": ["Henry", "Isla"],
+    "Grade 2": ["Jack", "Kara"],
+    "Grade 3": ["Liam", "Mia"],
+    // Add other classes as needed
+};
 
-function closeModal(id) {
-  const modal = document.getElementById(id);
-  if(modal) {
-    modal.classList.add('hidden');
-    modal.classList.remove('flex');
-  }
-}
+/* ===== Form Submission ===== */
+document.getElementById("fee-form").addEventListener("submit", function(e){
+    e.preventDefault();
 
-// Close when clicking outside modal content
-window.addEventListener('click', function(e) {
-  document.querySelectorAll('.modal').forEach(modal => {
-    if(e.target === modal) closeModal(modal.id);
-  });
+    const className = document.getElementById("fee-class-name").value;
+    const totalFees = parseFloat(document.getElementById("fee-total").value) || 0;
+    const dueDate = document.getElementById("fee-due-date").value;
+    const academicYear = document.getElementById("fee-academic-year").value;
+    const term = document.getElementById("fee-academic-term").value;
+    const notes = document.getElementById("fee-notes").value;
+
+    if(!className){
+        alert("Please select a class");
+        return;
+    }
+
+    const classStudents = students[className] || [];
+    const tableBody = document.getElementById("fee-table-body");
+
+    classStudents.forEach(student => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+            <td><input type="checkbox" class="select-fee"></td>
+            <td>${student}</td>
+            <td>${className}</td>
+            <td>${totalFees}</td>
+            <td>0</td>
+            <td>${totalFees}</td>
+            <td>${term}</td>
+            <td>Pending</td>
+            <td>${dueDate}</td>
+            <td>${academicYear}</td>
+            <td><button class="btn btn-sm btn-danger remove-fee">Delete</button></td>
+        `;
+        tableBody.appendChild(row);
+    });
+
+    alert(`Fees added for ${classStudents.length} student(s) in ${className}`);
+    this.reset();
+});
+
+/* ===== Delete Single Row ===== */
+document.getElementById("fee-table-body").addEventListener("click", function(e){
+    if(e.target.classList.contains("remove-fee")){
+        e.target.closest("tr").remove();
+    }
+});
+
+/* ===== Bulk Delete ===== */
+document.getElementById("select-all-fees").addEventListener("change", function(){
+    const checkboxes = document.querySelectorAll(".select-fee");
+    checkboxes.forEach(cb => cb.checked = this.checked);
+    document.getElementById("fees-bulk-delete").disabled = !this.checked;
+});
+
+document.getElementById("fees-bulk-delete").addEventListener("click", function(){
+    document.querySelectorAll(".select-fee:checked").forEach(cb => cb.closest("tr").remove());
+    this.disabled = true;
 });
 </script>
+
+
+ 
 
         <!-- Attendance Management Section -->
         <section id="events-section" class="tab-section" style="display:none; padding: 20px;">
