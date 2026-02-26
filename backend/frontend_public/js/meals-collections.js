@@ -175,6 +175,64 @@ document.getElementById("mc-other-form")?.addEventListener("submit", async funct
         console.error("Error saving charge:", err);
     }
 });
+// ------------------ Dynamic Student Dropdowns ------------------
+
+// Meals Modal: Populate students based on selected class
+document.querySelector("#mc-meal-form select[name='className']")?.addEventListener("change", async function() {
+    const className = this.value;
+    const studentSelect = document.getElementById("mc-meal-student");
+    studentSelect.innerHTML = '<option value="">Loading...</option>';
+
+    if (!className) {
+        studentSelect.innerHTML = '<option value="">Select Student</option>';
+        return;
+    }
+
+    try {
+        // Fetch all students in selected class from your API
+        const res = await fetch(`/api/students?className=${encodeURIComponent(className)}`);
+        const data = await res.json(); // array of student objects
+        studentSelect.innerHTML = '<option value="">Select Student</option>';
+        data.forEach(record => {
+            const student = record.student;
+            const opt = document.createElement("option");
+            opt.value = student.name;          // actual value sent on submission
+            opt.textContent = student.displayName; // shown in dropdown
+            studentSelect.appendChild(opt);
+        });
+    } catch (err) {
+        console.error("Error fetching students:", err);
+        studentSelect.innerHTML = '<option value="">Error loading students</option>';
+    }
+});
+
+// Other Charges Modal: Populate students based on selected class
+document.querySelector("#mc-other-form select[name='className']")?.addEventListener("change", async function() {
+    const className = this.value;
+    const studentSelect = document.getElementById("mc-other-student");
+    studentSelect.innerHTML = '<option value="">Loading...</option>';
+
+    if (!className) {
+        studentSelect.innerHTML = '<option value="">Select Student</option>';
+        return;
+    }
+
+    try {
+        const res = await fetch(`/api/students?className=${encodeURIComponent(className)}`);
+        const data = await res.json();
+        studentSelect.innerHTML = '<option value="">Select Student</option>';
+        data.forEach(record => {
+            const student = record.student;
+            const opt = document.createElement("option");
+            opt.value = student.name;
+            opt.textContent = student.displayName;
+            studentSelect.appendChild(opt);
+        });
+    } catch (err) {
+        console.error("Error fetching students:", err);
+        studentSelect.innerHTML = '<option value="">Error loading students</option>';
+    }
+});
 
 // ------------------ Initial Table Load ------------------
 loadMeals();
