@@ -2293,10 +2293,49 @@ window.fetch = async (input, init = {}) => {
     <div class="sub-section">
         <h3>Meals</h3>
         <button id="mc-add-meal-btn" class="mc-btn">Add Meal Payment</button>
+        <!-- Filters -->
+    <div class="mc-filters" style="margin:10px 0;">
+        <label for="mc-filter-class-meals">Filter by Class:</label>
+        <select id="mc-filter-class-meals" class="mc-input">
+            <option value="">All Classes</option>
+                            <optgroup label="Pre-Primary">
+                                <option value="Baby Class">Baby Class</option>
+                                <option value="PP1">PP1</option>
+                                <option value="PP2">PP2</option>
+                            </optgroup>
+                            <optgroup label="Lower Primary">
+                                <option value="Grade 1">Grade 1</option>
+                                <option value="Grade 2">Grade 2</option>
+                                <option value="Grade 3">Grade 3</option>
+                            </optgroup>
+                            <optgroup label="Upper Primary">
+                                <option value="Grade 4">Grade 4</option>
+                                <option value="Grade 5">Grade 5</option>
+                                <option value="Grade 6">Grade 6</option>
+                            </optgroup>
+                            <optgroup label="Junior Secondary">
+                                <option value="Grade 7">Grade 7</option>
+                                <option value="Grade 8">Grade 8</option>
+                                <option value="Grade 9">Grade 9</option>
+                            </optgroup>
+                            <optgroup label="Senior School">
+                                <option value="Grade 10">Grade 10</option>
+                                <option value="Grade 11">Grade 11</option>
+                                <option value="Grade 12">Grade 12</option>
+                            </optgroup>
+        </select>
+
+        <label for="mc-search-meals" style="margin-left:20px;">Search Student:</label>
+        <input type="text" id="mc-search-meals" class="mc-input" placeholder="Enter student name">
+    </div>
+
+    <!-- Export / Print Buttons -->
+    <div class="mc-actions" style="margin-bottom:10px;">
+        <button id="mc-export-meals" class="mc-btn">Export CSV</button>
+        <button id="mc-print-meals" class="mc-btn">Print Table</button>
+    </div>
+
         <table id="mc-meals-table" class="mc-records-table">
-            <!-- Meals Search -->
-              <label>Search Student:</label>
-              <input type="text" id="mc-search-meals" class="mc-input" placeholder="Enter student name">
             <thead>
                 <tr>
                     <th data-sort="className">Class</th>
@@ -2318,10 +2357,48 @@ window.fetch = async (input, init = {}) => {
     <div class="sub-section">
         <h3>Other Charges</h3>
         <button id="mc-add-other-btn" class="mc-btn">Add Other Charge</button>
+        <!-- Filters -->
+    <div class="mc-filters" style="margin:10px 0;">
+        <label for="mc-filter-class-other">Filter by Class:</label>
+        <select id="mc-filter-class-other" class="mc-input">
+            <option value="">All Classes</option>
+                            <optgroup label="Pre-Primary">
+                                <option value="Baby Class">Baby Class</option>
+                                <option value="PP1">PP1</option>
+                                <option value="PP2">PP2</option>
+                            </optgroup>
+                            <optgroup label="Lower Primary">
+                                <option value="Grade 1">Grade 1</option>
+                                <option value="Grade 2">Grade 2</option>
+                                <option value="Grade 3">Grade 3</option>
+                            </optgroup>
+                            <optgroup label="Upper Primary">
+                                <option value="Grade 4">Grade 4</option>
+                                <option value="Grade 5">Grade 5</option>
+                                <option value="Grade 6">Grade 6</option>
+                            </optgroup>
+                            <optgroup label="Junior Secondary">
+                                <option value="Grade 7">Grade 7</option>
+                                <option value="Grade 8">Grade 8</option>
+                                <option value="Grade 9">Grade 9</option>
+                            </optgroup>
+                            <optgroup label="Senior School">
+                                <option value="Grade 10">Grade 10</option>
+                                <option value="Grade 11">Grade 11</option>
+                                <option value="Grade 12">Grade 12</option>
+                            </optgroup>
+        </select>
+
+        <label for="mc-search-other" style="margin-left:20px;">Search Student:</label>
+        <input type="text" id="mc-search-other" class="mc-input" placeholder="Enter student name">
+    </div>
+
+    <!-- Export / Print Buttons -->
+    <div class="mc-actions" style="margin-bottom:10px;">
+        <button id="mc-export-other" class="mc-btn">Export CSV</button>
+        <button id="mc-print-other" class="mc-btn">Print Table</button>
+    </div>
         <table id="mc-other-table" class="mc-records-table"> 
-            <!-- Meals Search -->
-           <label>Search Student:</label>
-           <input type="text" id="mc-search-meals" class="mc-input" placeholder="Enter student name">
             <thead>
                 <tr>
                  <th data-sort="className">Class</th>
