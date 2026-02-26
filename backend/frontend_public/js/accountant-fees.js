@@ -709,6 +709,7 @@ async recordPayment(feeId) {
         this.printReceipt({
             studentName: fee.studentName,
             className: fee.className,
+            FeeType: Tution,
             amount: paymentAmount,
             paymentMethod,
             reference,
