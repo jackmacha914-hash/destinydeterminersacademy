@@ -754,6 +754,12 @@ async showPaymentModal(fee, balance) {
             <p>Student: ${fee.studentName} (${fee.className})</p>
             <p>Fee Type: <strong>Tuition Fee</strong></p>
             <p>Balance: ${this.formatCurrency(balance)}</p>
+            <label>Term:</label>
+               <select id="modal-term" style="width:100%; margin-bottom:10px;">
+               <option value="Term 1">Term 1</option>
+               <option value="Term 2">Term 2</option>
+               <option value="Term 3">Term 3</option>
+               </select>
             <label>Amount:</label>
             <input type="number" id="modal-amount" min="0" max="${balance}" step="0.01" style="width:100%;margin-bottom:10px;">
             <label>Payment Method:</label>
@@ -797,12 +803,14 @@ async showPaymentModal(fee, balance) {
             const method = Array.from(radios).find(r => r.checked).value;
             const reference = (method === 'Mpesa' || method === 'Bank') ? referenceInput.value.trim() : `PAY-${Date.now()}`;
             const notes = notesInput.value.trim() || 'Payment recorded via accountant portal';
+            const term = modal.querySelector('#modal-term').value;
+            const feeType = 'Tuition Fee';
 
             if (!amount || amount <= 0 || amount > balance) return alert('Enter a valid amount');
             if ((method === 'Mpesa' || method === 'Bank') && !reference) return alert('Reference required');
 
             overlay.remove();
-            resolve({ amount, paymentMethod: method, reference, notes });
+            resolve({ amount, paymentMethod: method, reference, notes, term, feeType });
         };
     });
 }
@@ -868,13 +876,14 @@ async recordPayment(feeId) {
 
         // Print receipt automatically
         this.printReceipt({
-            studentName: fee.studentName,
-            className: fee.className,
-            FeeType: 'Tution Fee',
-            amount: paymentAmount,
-            paymentMethod,
-            reference,
-            balance: balance - paymentAmount
+        studentName: fee.studentName,
+        className: fee.className,
+        feeType: paymentData.feeType, // ✅ from modal
+        term: paymentData.term,       // ✅ from modal
+        amount: paymentAmount,
+        paymentMethod,
+        reference,
+        balance: balance - paymentAmount
         });
 
         // Optional row update
@@ -914,6 +923,12 @@ async showPaymentModal(fee, balance) {
             <h2>Record Payment</h2>
             <p>Student: ${fee.studentName} (${fee.className})</p>
             <p>Balance: ${this.formatCurrency(balance)}</p>
+            <label>Term:</label>
+             <select id="modal-term" style="width:100%; margin-bottom:10px;">
+             <option value="Term 1">Term 1</option>
+             <option value="Term 2">Term 2</option>
+             <option value="Term 3">Term 3</option>
+             </select>
             <label>Amount:</label>
             <input type="number" id="modal-amount" min="0" max="${balance}" step="0.01" style="width:100%;margin-bottom:10px;">
             <label>Payment Method:</label>
@@ -986,6 +1001,7 @@ printReceipt(data) {
                 <div class="row"><strong>Student:</strong> ${data.studentName}</div>
                 <div class="row"><strong>Class:</strong> ${data.className}</div>
                 <div class="row"><strong>Fee Type:</strong> ${data.FeeType}</div>
+                <div class="row"><strong>Term:</strong> ${data.term}</div>
                 <div class="row"><strong>Amount Paid:</strong> ${this.formatCurrency(data.amount)}</div>
                 <div class="row"><strong>Payment Method:</strong> ${data.paymentMethod}</div>
                 ${data.reference ? `<div class="row"><strong>Reference:</strong> ${data.reference}</div>` : ''}
