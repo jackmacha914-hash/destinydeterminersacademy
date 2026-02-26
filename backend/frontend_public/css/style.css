@@ -1638,3 +1638,8 @@ margin-right:5px;
 .mc-btn { padding:8px 15px; margin-bottom:10px; }
 .mc-records-table { width:100%; border-collapse:collapse; margin-top:10px; }
 .mc-records-table th, .mc-records-table td { border:1px solid #ccc; padding:6px; text-align:left; }
+/* FORCE HIDE Meals & Collections modals */
+#mc-meal-modal,
+#mc-other-modal {
+    display: none !important;
+}
