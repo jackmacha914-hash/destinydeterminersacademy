@@ -1631,3 +1631,10 @@ margin-right:5px;
     justify-content: flex-end;
     gap: 10px;
 }
+/*meals*\
+.mc-modal { display:none; position:fixed; z-index:999; left:0; top:0; width:100%; height:100%; background-color: rgba(0,0,0,0.5); }
+.mc-modal-content { background:#fff; margin:10% auto; padding:20px; width:400px; border-radius:8px; }
+.mc-close { float:right; font-size:24px; cursor:pointer; }
+.mc-btn { padding:8px 15px; margin-bottom:10px; }
+.mc-records-table { width:100%; border-collapse:collapse; margin-top:10px; }
+.mc-records-table th, .mc-records-table td { border:1px solid #ccc; padding:6px; text-align:left; }
