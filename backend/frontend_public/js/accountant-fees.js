@@ -648,83 +648,104 @@ if (this.feesYearFilter) {
     }
     
 async recordPayment(feeId) {
-        try {
-            console.log('=== Starting recordPayment ===');
-            console.log('Fee ID:', feeId);
-            
-            // Get the fee details with payments
-            const fee = await this.getFeeById(feeId);
-            if (!fee) {
-                throw new Error('Fee record not found');
-            }
-            
-            console.log('Current fee data:', fee);
-            
-            // Calculate balance
-            const totalFees = parseFloat(fee.totalFees || fee.amount || 0);
-            const paidAmount = parseFloat(fee.paidAmount || fee.amountPaid || 0);
-            const balance = totalFees - paidAmount;
-            
-            console.log('Payment calculations:', { totalFees, paidAmount, balance });
-            
-            if (balance <= 0) {
-                this.showNotification('This fee is already fully paid', 'info');
+    try {
+        console.log('=== Starting recordPayment ===');
+        console.log('Fee ID:', feeId);
+
+        // 1️⃣ Get Fee Details
+        const fee = await this.getFeeById(feeId);
+        if (!fee) {
+            throw new Error('Fee record not found');
+        }
+
+        const totalFees = parseFloat(fee.totalFees || fee.amount || 0);
+        const paidAmount = parseFloat(fee.paidAmount || fee.amountPaid || 0);
+        const balance = totalFees - paidAmount;
+
+        console.log('Payment calculations:', { totalFees, paidAmount, balance });
+
+        if (balance <= 0) {
+            this.showNotification('This fee is already fully paid', 'info');
+            return;
+        }
+
+        // 2️⃣ Ask Payment Amount
+        const amountInput = prompt(
+            `Enter payment amount (Maximum: ${this.formatCurrency(balance)})`
+        );
+
+        if (!amountInput) return;
+
+        const paymentAmount = parseFloat(amountInput);
+
+        if (isNaN(paymentAmount) || paymentAmount <= 0) {
+            this.showNotification('Please enter a valid payment amount', 'error');
+            return;
+        }
+
+        if (paymentAmount > balance) {
+            this.showNotification(
+                `Amount cannot exceed ${this.formatCurrency(balance)}`,
+                'error'
+            );
+            return;
+        }
+
+        // 3️⃣ Ask Payment Method
+        const methodInput = prompt(
+            `Select Payment Method:\n1 = Cash\n2 = Mpesa\n3 = Bank`
+        );
+
+        let paymentMethod = 'Cash';
+        if (methodInput === '2') paymentMethod = 'Mpesa';
+        if (methodInput === '3') paymentMethod = 'Bank';
+
+        // 4️⃣ Ask Reference If Needed
+        let reference = `PAY-${Date.now()}`;
+
+        if (paymentMethod === 'Mpesa' || paymentMethod === 'Bank') {
+            const refInput = prompt(`Enter ${paymentMethod} Reference Number:`);
+            if (!refInput) {
+                this.showNotification('Reference number is required', 'error');
                 return;
             }
-            
-            // Show a payment modal or form
-        // 1️⃣ Ask Amount
-const amountInput = prompt(
-    `Enter payment amount (Maximum: ${this.formatCurrency(balance)})`
-);
+            reference = refInput;
+        }
 
-if (!amountInput) return;
+        // 5️⃣ Get Token
+        const token = localStorage.getItem('token');
+        if (!token) {
+            this.showNotification('You must be logged in to record payments', 'error');
+            window.location.href = '/login.html';
+            return;
+        }
 
-const paymentAmount = parseFloat(amountInput);
+        // 6️⃣ Button Loading State
+        const paymentBtn = document.querySelector(
+            `[data-action="record-payment"][data-fee-id="${feeId}"]`
+        );
 
-if (isNaN(paymentAmount) || paymentAmount <= 0) {
-    this.showNotification('Please enter a valid payment amount', 'error');
-    return;
-}
+        const originalText = paymentBtn ? paymentBtn.textContent : 'Record Payment';
 
-if (paymentAmount > balance) {
-    this.showNotification(
-        `Amount cannot exceed ${this.formatCurrency(balance)}`,
-        'error'
-    );
-    return;
-}
+        if (paymentBtn) {
+            paymentBtn.disabled = true;
+            paymentBtn.textContent = 'Processing...';
+        }
 
-// 2️⃣ Ask Payment Method
-const methodInput = prompt(
-    `Select Payment Method:\n1 = Cash\n2 = Mpesa\n3 = Bank`
-);
+        try {
 
-let paymentMethod = 'Cash';
+            const paymentData = {
+                amount: paymentAmount,
+                paymentMethod,
+                reference,
+                notes: 'Payment recorded via accountant portal'
+            };
 
-if (methodInput === '2') paymentMethod = 'Mpesa';
-if (methodInput === '3') paymentMethod = 'Bank';
+            console.log('Sending payment data:', paymentData);
 
-// 3️⃣ Ask Reference if needed
-let reference = '';
-if (paymentMethod === 'Mpesa' || paymentMethod === 'Bank') {
-    reference = prompt(`Enter ${paymentMethod} Reference Number:`);
-    if (!reference) {
-        this.showNotification('Reference number is required', 'error');
-        return;
-    }
-}
-
-const paymentData = {
-    amount: paymentAmount,
-    paymentMethod,
-    reference,
-    notes: 'Payment recorded via accountant portal'
-};
-                
-                console.log('Sending payment data:', paymentData);
-                
-                const response = await fetch(`https://destinydeterminersacademy.onrender.com/api/fees/${feeId}/payments`, {
+            const response = await fetch(
+                `https://destinydeterminersacademy.onrender.com/api/fees/${feeId}/payments`,
+                {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${token}`,
@@ -732,126 +753,64 @@ const paymentData = {
                         'Accept': 'application/json'
                     },
                     body: JSON.stringify(paymentData)
-                });
-                
-                console.log('Response status:', response.status);
-                
-                if (!response.ok) {
-                    let errorDetails;
-                    try {
-                        const errorData = await response.json();
-                        errorDetails = errorData.message || errorData.error || 'Unknown error';
-                        console.error('Backend error details:', errorData);
-                    } catch (parseError) {
-                        const text = await response.text();
-                        errorDetails = text || 'Failed to parse error response';
-                        console.error('Raw error response:', text);
-                    }
-                    throw new Error(`Payment failed (${response.status}): ${errorDetails}`);
                 }
-                
-                // Get the updated fee with payment details
-                const responseData = await response.json();
-                console.log('API Response:', responseData);
-                
-                // The fee might be nested in a 'fee' property or be the root object
-                const updatedFee = responseData.fee || responseData;
-                
-                if (!updatedFee) {
-                    throw new Error('No fee data returned from server');
-                }
-                
-                console.log('Updated fee data:', updatedFee);
-                
-                // Force a complete refresh of the fees list
-await this.loadFeesWithFilters();
+            );
 
-// ✅ ADD RECEIPT LOGIC RIGHT HERE
-this.printReceipt({
-    studentName: fee.studentName,
-    className: fee.className,
-    amount: paymentAmount,
-    method: paymentData.paymentMethod,
-    reference: paymentData.reference,
-    balance: balance - paymentAmount
-});
-
-// Show success message
-this.showNotification('Payment recorded successfully', 'success');
-                
-                // Additional check: Try to update the specific row
-                setTimeout(() => {
-                    const feeRow = document.querySelector(`tr[data-fee-id="${feeId}"]`);
-                    console.log('Looking for fee row with ID:', feeId);
-                    console.log('Found row:', feeRow);
-                    
-                    if (feeRow) {
-                        console.log('Updating specific row...');
-                        this.createFeeRow(updatedFee).then(updatedRow => {
-                            if (updatedRow && feeRow.parentNode) {
-                                feeRow.parentNode.replaceChild(updatedRow, feeRow);
-                                console.log('Row updated successfully');
-                            }
-                        });
-                    } else {
-                        console.log('Row not found, table should be refreshed by loadFeesWithFilters');
-                    }
-                }, 500);
-                
-            } finally {
-                // Restore button state
-                if (paymentBtn) {
-                    paymentBtn.disabled = false;
-                    paymentBtn.textContent = originalText;
-                }
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(errorText || 'Payment failed');
             }
-            
-        } catch (error) {
-            console.error('Error in recordPayment:', error);
-            this.showNotification(`Error: ${error.message || 'Failed to record payment'}`, 'error');
-            
-            // Force refresh on error to ensure UI is in sync
-            try {
-                await this.loadFeesWithFilters();
-            } catch (refreshError) {
-                console.error('Error refreshing fees after payment error:', refreshError);
+
+            const responseData = await response.json();
+            const updatedFee = responseData.fee || responseData;
+
+            if (!updatedFee) {
+                throw new Error('No updated fee data returned');
+            }
+
+            // 7️⃣ Refresh Entire Table
+            await this.loadFeesWithFilters();
+
+            // 8️⃣ Update Specific Row (Optional Optimization)
+            setTimeout(() => {
+                const feeRow = document.querySelector(
+                    `tr[data-fee-id="${feeId}"]`
+                );
+
+                if (feeRow) {
+                    this.createFeeRow(updatedFee).then(updatedRow => {
+                        if (updatedRow && feeRow.parentNode) {
+                            feeRow.parentNode.replaceChild(updatedRow, feeRow);
+                        }
+                    });
+                }
+            }, 300);
+
+            // 9️⃣ Success Message
+            this.showNotification('Payment recorded successfully', 'success');
+
+        } finally {
+            if (paymentBtn) {
+                paymentBtn.disabled = false;
+                paymentBtn.textContent = originalText;
             }
         }
-    printReceipt(data) {
-    const receiptWindow = window.open('', '_blank');
 
-    receiptWindow.document.write(`
-        <html>
-        <head>
-            <title>Payment Receipt</title>
-            <style>
-                body { font-family: Arial; padding: 20px; }
-                h2 { text-align: center; }
-                .receipt { border: 1px solid #000; padding: 20px; }
-                .row { margin-bottom: 10px; }
-            </style>
-        </head>
-        <body>
-            <div class="receipt">
-                <h2>DESTINY DETERMINERS ACADEMY</h2>
-                <p><strong>Receipt No:</strong> RCPT-${Date.now()}</p>
-                <div class="row"><strong>Student:</strong> ${data.studentName}</div>
-                <div class="row"><strong>Class:</strong> ${data.className}</div>
-                <div class="row"><strong>Amount Paid:</strong> Ksh ${data.amount}</div>
-                <div class="row"><strong>Payment Method:</strong> ${data.method}</div>
-                ${data.reference ? `<div class="row"><strong>Reference:</strong> ${data.reference}</div>` : ''}
-                <div class="row"><strong>Balance:</strong> Ksh ${data.balance}</div>
-                <div class="row"><strong>Date:</strong> ${new Date().toLocaleString()}</div>
-            </div>
-            <script>
-                window.onload = function() { window.print(); }
-            </script>
-        </body>
-        </html>
-    `);
-}
+    } catch (error) {
+        console.error('Error in recordPayment:', error);
+        this.showNotification(
+            error.message || 'Failed to record payment',
+            'error'
+        );
+
+        // Ensure UI stays in sync
+        try {
+            await this.loadFeesWithFilters();
+        } catch (refreshError) {
+            console.error('Error refreshing fees:', refreshError);
+        }
     }
-receiptWindow.document.close();
+}
     
     /**
      * View payment history for a specific fee
