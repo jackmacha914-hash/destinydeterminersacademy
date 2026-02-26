@@ -806,6 +806,165 @@ async showPaymentModal(fee, balance) {
 }
 
 // Receipt generation (fixed paymentMethod)
+// Main payment function
+async recordPayment(feeId) {
+    try {
+        console.log('=== Starting recordPayment ===', feeId);
+
+        const fee = await this.getFeeById(feeId);
+        if (!fee) throw new Error('Fee record not found');
+
+        const totalFees = parseFloat(fee.totalFees || fee.amount || 0);
+        const paidAmount = parseFloat(fee.paidAmount || fee.amountPaid || 0);
+        const balance = totalFees - paidAmount;
+
+        if (balance <= 0) {
+            this.showNotification('This fee is already fully paid', 'info');
+            return;
+        }
+
+        // Show modal
+        const paymentData = await this.showPaymentModal(fee, balance);
+        if (!paymentData) return;
+
+        const { amount: paymentAmount, paymentMethod, reference, notes } = paymentData;
+
+        // Confirm payment
+        const confirmPayment = confirm(
+            `Confirm Payment Details:\nStudent: ${fee.studentName}\nClass: ${fee.className}\nAmount: ${this.formatCurrency(paymentAmount)}\nMethod: ${paymentMethod}\nReference: ${reference}\nNotes: ${notes}`
+        );
+        if (!confirmPayment) {
+            this.showNotification('Payment cancelled', 'info');
+            return;
+        }
+
+        // Send payment
+        const token = localStorage.getItem('token');
+        if (!token) throw new Error('You must be logged in');
+
+        const paymentBtn = document.querySelector(`[data-action="record-payment"][data-fee-id="${feeId}"]`);
+        const originalText = paymentBtn?.textContent || 'Record Payment';
+        if (paymentBtn) { paymentBtn.disabled = true; paymentBtn.textContent = 'Processing...'; }
+
+        const response = await fetch(`https://destinydeterminersacademy.onrender.com/api/fees/${feeId}/payments`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify(paymentData)
+        });
+
+        if (!response.ok) {
+            const text = await response.text();
+            throw new Error(`Payment failed: ${text}`);
+        }
+
+        const responseData = await response.json();
+        const updatedFee = responseData.fee || responseData;
+
+        // Refresh table
+        await this.loadFeesWithFilters();
+        this.showNotification('Payment recorded successfully', 'success');
+
+        // Print receipt automatically
+        this.printReceipt({
+            studentName: fee.studentName,
+            className: fee.className,
+            amount: paymentAmount,
+            paymentMethod,
+            reference,
+            balance: balance - paymentAmount
+        });
+
+        // Optional row update
+        setTimeout(() => {
+            const feeRow = document.querySelector(`tr[data-fee-id="${feeId}"]`);
+            if (feeRow) this.createFeeRow(updatedFee).then(updatedRow => {
+                if (updatedRow && feeRow.parentNode) feeRow.parentNode.replaceChild(updatedRow, feeRow);
+            });
+        }, 300);
+
+    } catch (error) {
+        console.error('Error recording payment:', error);
+        this.showNotification(error.message || 'Failed to record payment', 'error');
+        try { await this.loadFeesWithFilters(); } catch (_) {}
+    } finally {
+        const paymentBtn = document.querySelector(`[data-action="record-payment"][data-fee-id="${feeId}"]`);
+        if (paymentBtn) { paymentBtn.disabled = false; paymentBtn.textContent = 'Record Payment'; }
+    }
+}
+
+// Enhanced modal with radio buttons
+async showPaymentModal(fee, balance) {
+    return new Promise(resolve => {
+        // Overlay
+        const overlay = document.createElement('div');
+        overlay.style = `
+            position: fixed; top:0; left:0; width:100%; height:100%;
+            background: rgba(0,0,0,0.5); display:flex; justify-content:center; align-items:center; z-index:9999;
+        `;
+
+        // Modal
+        const modal = document.createElement('div');
+        modal.style = `
+            background:#fff; padding:20px; border-radius:8px; width:350px; box-shadow:0 2px 10px rgba(0,0,0,0.3);
+        `;
+        modal.innerHTML = `
+            <h2>Record Payment</h2>
+            <p>Student: ${fee.studentName} (${fee.className})</p>
+            <p>Balance: ${this.formatCurrency(balance)}</p>
+            <label>Amount:</label>
+            <input type="number" id="modal-amount" min="0" max="${balance}" step="0.01" style="width:100%;margin-bottom:10px;">
+            <label>Payment Method:</label>
+            <div>
+                <label><input type="radio" name="method" value="Cash" checked> Cash</label>
+                <label><input type="radio" name="method" value="Mpesa"> Mpesa</label>
+                <label><input type="radio" name="method" value="Bank"> Bank</label>
+            </div>
+            <div id="reference-container" style="display:none;margin-top:10px;">
+                <label>Reference Number:</label>
+                <input type="text" id="modal-reference" style="width:100%;">
+            </div>
+            <label>Notes (optional):</label>
+            <input type="text" id="modal-notes" style="width:100%;margin-bottom:10px;">
+            <div style="text-align:right;">
+                <button id="modal-cancel" style="margin-right:5px;">Cancel</button>
+                <button id="modal-submit">Submit</button>
+            </div>
+        `;
+        overlay.appendChild(modal);
+        document.body.appendChild(overlay);
+
+        const amountInput = modal.querySelector('#modal-amount');
+        const referenceContainer = modal.querySelector('#reference-container');
+        const referenceInput = modal.querySelector('#modal-reference');
+        const notesInput = modal.querySelector('#modal-notes');
+        const submitBtn = modal.querySelector('#modal-submit');
+        const cancelBtn = modal.querySelector('#modal-cancel');
+        const radios = modal.querySelectorAll('input[name="method"]');
+
+        const updateReference = () => {
+            const method = Array.from(radios).find(r => r.checked).value;
+            referenceContainer.style.display = (method === 'Mpesa' || method === 'Bank') ? 'block' : 'none';
+        };
+        radios.forEach(r => r.addEventListener('change', updateReference));
+        updateReference();
+
+        cancelBtn.onclick = () => { overlay.remove(); resolve(null); };
+        submitBtn.onclick = () => {
+            const amount = parseFloat(amountInput.value);
+            const method = Array.from(radios).find(r => r.checked).value;
+            const reference = (method === 'Mpesa' || method === 'Bank') ? referenceInput.value.trim() : `PAY-${Date.now()}`;
+            const notes = notesInput.value.trim() || 'Payment recorded via accountant portal';
+
+            if (!amount || amount <= 0 || amount > balance) return alert('Enter a valid amount');
+            if ((method === 'Mpesa' || method === 'Bank') && !reference) return alert('Reference required');
+
+            overlay.remove();
+            resolve({ amount, paymentMethod: method, reference, notes });
+        };
+    });
+}
+
+// Receipt generation (fixed paymentMethod)
 printReceipt(data) {
     const receiptWindow = window.open('', '_blank');
     receiptWindow.document.write(`
