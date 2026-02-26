@@ -849,10 +849,9 @@ this.showNotification('Payment recorded successfully', 'success');
         </body>
         </html>
     `);
-
-    receiptWindow.document.close();
 }
     }
+receiptWindow.document.close();
     
     /**
      * View payment history for a specific fee
