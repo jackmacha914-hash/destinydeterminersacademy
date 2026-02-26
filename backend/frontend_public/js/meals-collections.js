@@ -181,7 +181,7 @@ document.getElementById("mc-other-form")?.addEventListener("submit", async funct
 document.querySelector("#mc-meal-form select[name='className']")?.addEventListener("change", async function() {
     const className = this.value;
     const studentSelect = document.getElementById("mc-meal-student");
-    if(!studentSelect) return;
+    if (!studentSelect) return;
     studentSelect.innerHTML = '<option value="">Loading...</option>';
 
     if (!className) {
@@ -190,13 +190,16 @@ document.querySelector("#mc-meal-form select[name='className']")?.addEventListen
     }
 
     try {
-        const res = await fetch(`/api/students?className=${encodeURIComponent(className)}`);
+        const res = await fetch(`/api/students`);
         const data = await res.json();
         studentSelect.innerHTML = '<option value="">Select Student</option>';
 
+        // Filter students by class
         data.forEach(student => {
-            // student is the top-level object now
-            if(!student) return;
+            if (!student || !student.profile) return;
+            const studentClass = student.profile.class || "";
+            if (studentClass !== className) return; // only include students in selected class
+
             const studentName = student.name || "Unnamed";
             const opt = document.createElement("option");
             opt.value = studentName;
@@ -213,7 +216,7 @@ document.querySelector("#mc-meal-form select[name='className']")?.addEventListen
 document.querySelector("#mc-other-form select[name='className']")?.addEventListener("change", async function() {
     const className = this.value;
     const studentSelect = document.getElementById("mc-other-student");
-    if(!studentSelect) return;
+    if (!studentSelect) return;
     studentSelect.innerHTML = '<option value="">Loading...</option>';
 
     if (!className) {
@@ -222,12 +225,15 @@ document.querySelector("#mc-other-form select[name='className']")?.addEventListe
     }
 
     try {
-        const res = await fetch(`/api/students?className=${encodeURIComponent(className)}`);
+        const res = await fetch(`/api/students`);
         const data = await res.json();
         studentSelect.innerHTML = '<option value="">Select Student</option>';
 
         data.forEach(student => {
-            if(!student) return;
+            if (!student || !student.profile) return;
+            const studentClass = student.profile.class || "";
+            if (studentClass !== className) return; // filter by selected class
+
             const studentName = student.name || "Unnamed";
             const opt = document.createElement("option");
             opt.value = studentName;
