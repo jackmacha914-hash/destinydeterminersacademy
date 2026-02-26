@@ -2285,11 +2285,11 @@ window.fetch = async (input, init = {}) => {
     </div>
 </div>
 
-       <!-- Meals & Collections Section -->
-<section id="meals-collections-section" class="tab-section">
+       <!-- Meals & Collections Tab -->
+<section id="meals-collections-section" class="tab-section" style="display:none;">
     <h2>Meals & Collections</h2>
 
-    <!-- Meals -->
+    <!-- Meals Section -->
     <div class="sub-section">
         <h3>Meals</h3>
         <button id="mc-add-meal-btn" class="mc-btn">Add Meal Payment</button>
@@ -2304,11 +2304,13 @@ window.fetch = async (input, init = {}) => {
                     <th>Receipt</th>
                 </tr>
             </thead>
-            <tbody></tbody>
+            <tbody>
+                <!-- Meals records go here -->
+            </tbody>
         </table>
     </div>
 
-    <!-- Other Charges -->
+    <!-- Other Charges Section -->
     <div class="sub-section">
         <h3>Other Charges</h3>
         <button id="mc-add-other-btn" class="mc-btn">Add Other Charge</button>
@@ -2322,12 +2324,14 @@ window.fetch = async (input, init = {}) => {
                     <th>Receipt</th>
                 </tr>
             </thead>
-            <tbody></tbody>
+            <tbody>
+                <!-- Other charges records go here -->
+            </tbody>
         </table>
     </div>
 </section>
 
-<!-- Meal Modal -->
+        <!-- Meal Modal -->
 <div id="mc-meal-modal" class="mc-modal">
     <div class="mc-modal-content">
         <span class="mc-close" id="mc-close-meal">&times;</span>
@@ -2335,22 +2339,27 @@ window.fetch = async (input, init = {}) => {
         <form id="mc-meal-form">
             <label>Student:</label>
             <input type="text" name="studentName" required>
+
             <label>Meal Type:</label>
             <select name="mealType" required>
                 <option>Breakfast</option>
                 <option>Lunch</option>
                 <option>Snack</option>
             </select>
+
             <label>Date:</label>
             <input type="date" name="date" required>
+
             <label>Frequency:</label>
             <select name="frequency">
                 <option>Daily</option>
                 <option>Weekly</option>
                 <option>Monthly</option>
             </select>
+
             <label>Amount:</label>
             <input type="number" name="amount" required>
+
             <button type="submit">Save & Print Receipt</button>
         </form>
     </div>
@@ -2364,19 +2373,23 @@ window.fetch = async (input, init = {}) => {
         <form id="mc-other-form">
             <label>Student:</label>
             <input type="text" name="studentName" required>
+
             <label>Charge Type:</label>
             <select name="chargeType" required>
                 <option>Diary</option>
                 <option>Assessment</option>
-                <option>Books</option>
+                <option>Book</option>
                 <option>School Trip</option>
                 <option>Activity Fee</option>
-                <option>Admission Fee</option>
+                <option>Admission</option>
             </select>
+
             <label>Date:</label>
             <input type="date" name="date" required>
+
             <label>Amount:</label>
             <input type="number" name="amount" required>
+
             <button type="submit">Save & Print Receipt</button>
         </form>
     </div>
