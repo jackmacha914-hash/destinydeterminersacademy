@@ -751,6 +751,7 @@ async showPaymentModal(fee, balance) {
         modal.innerHTML = `
             <h2>Record Payment</h2>
             <p>Student: ${fee.studentName} (${fee.className})</p>
+            <p>Fee Type: <strong>Tuition Fee</strong></p>
             <p>Balance: ${this.formatCurrency(balance)}</p>
             <label>Amount:</label>
             <input type="number" id="modal-amount" min="0" max="${balance}" step="0.01" style="width:100%;margin-bottom:10px;">
@@ -868,6 +869,7 @@ async recordPayment(feeId) {
         this.printReceipt({
             studentName: fee.studentName,
             className: fee.className,
+            Fee Type: Tution,
             amount: paymentAmount,
             paymentMethod,
             reference,
