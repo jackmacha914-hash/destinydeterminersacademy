@@ -1643,3 +1643,9 @@ margin-right:5px;
 #mc-other-modal {
     display: none !important;
 }
+/* Show modal when active */
+.mc-modal.mc-show {
+    display: flex !important; /* flex allows centering */
+    align-items: center;
+    justify-content: center;
+}
