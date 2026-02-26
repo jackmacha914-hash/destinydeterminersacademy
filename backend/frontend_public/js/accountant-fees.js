@@ -647,11 +647,11 @@ if (this.feesYearFilter) {
         this.showNotification('Viewing fee details for: ' + feeId, 'info');
     }
     
+// Main payment function
 async recordPayment(feeId) {
     try {
         console.log('=== Starting recordPayment ===', feeId);
 
-        // 1️⃣ Get fee details
         const fee = await this.getFeeById(feeId);
         if (!fee) throw new Error('Fee record not found');
 
@@ -664,31 +664,28 @@ async recordPayment(feeId) {
             return;
         }
 
-        // 2️⃣ Show Payment Modal instead of prompts
+        // Show modal
         const paymentData = await this.showPaymentModal(fee, balance);
-        if (!paymentData) return; // User cancelled
+        if (!paymentData) return;
 
         const { amount: paymentAmount, paymentMethod, reference, notes } = paymentData;
 
-        // 3️⃣ Confirm Payment
-        const confirm = confirm(
+        // Confirm payment
+        const confirmPayment = confirm(
             `Confirm Payment Details:\nStudent: ${fee.studentName}\nClass: ${fee.className}\nAmount: ${this.formatCurrency(paymentAmount)}\nMethod: ${paymentMethod}\nReference: ${reference}\nNotes: ${notes}`
         );
-        if (!confirm) {
-            this.showNotification('Payment cancelled by user', 'info');
+        if (!confirmPayment) {
+            this.showNotification('Payment cancelled', 'info');
             return;
         }
 
-        // 4️⃣ Send Payment
+        // Send payment
         const token = localStorage.getItem('token');
         if (!token) throw new Error('You must be logged in');
 
         const paymentBtn = document.querySelector(`[data-action="record-payment"][data-fee-id="${feeId}"]`);
         const originalText = paymentBtn?.textContent || 'Record Payment';
-        if (paymentBtn) {
-            paymentBtn.disabled = true;
-            paymentBtn.textContent = 'Processing...';
-        }
+        if (paymentBtn) { paymentBtn.disabled = true; paymentBtn.textContent = 'Processing...'; }
 
         const response = await fetch(`https://destinydeterminersacademy.onrender.com/api/fees/${feeId}/payments`, {
             method: 'POST',
@@ -704,28 +701,26 @@ async recordPayment(feeId) {
         const responseData = await response.json();
         const updatedFee = responseData.fee || responseData;
 
-        // 5️⃣ Refresh table
+        // Refresh table
         await this.loadFeesWithFilters();
         this.showNotification('Payment recorded successfully', 'success');
 
-        // 6️⃣ Automatically print receipt
+        // Print receipt automatically
         this.printReceipt({
             studentName: fee.studentName,
             className: fee.className,
             amount: paymentAmount,
-            method: paymentMethod,
+            paymentMethod,
             reference,
             balance: balance - paymentAmount
         });
 
-        // 7️⃣ Optional: Update row directly for faster UI
+        // Optional row update
         setTimeout(() => {
             const feeRow = document.querySelector(`tr[data-fee-id="${feeId}"]`);
-            if (feeRow) {
-                this.createFeeRow(updatedFee).then(updatedRow => {
-                    if (updatedRow && feeRow.parentNode) feeRow.parentNode.replaceChild(updatedRow, feeRow);
-                });
-            }
+            if (feeRow) this.createFeeRow(updatedFee).then(updatedRow => {
+                if (updatedRow && feeRow.parentNode) feeRow.parentNode.replaceChild(updatedRow, feeRow);
+            });
         }, 300);
 
     } catch (error) {
@@ -738,94 +733,90 @@ async recordPayment(feeId) {
     }
 }
 
-// Modal for payment (checkbox/radio/dropdown UI)
+// Enhanced modal with radio buttons
 async showPaymentModal(fee, balance) {
-    return new Promise((resolve) => {
-        // Create modal dynamically
+    return new Promise(resolve => {
+        // Overlay
+        const overlay = document.createElement('div');
+        overlay.style = `
+            position: fixed; top:0; left:0; width:100%; height:100%;
+            background: rgba(0,0,0,0.5); display:flex; justify-content:center; align-items:center; z-index:9999;
+        `;
+
+        // Modal
         const modal = document.createElement('div');
-        modal.className = 'payment-modal';
+        modal.style = `
+            background:#fff; padding:20px; border-radius:8px; width:350px; box-shadow:0 2px 10px rgba(0,0,0,0.3);
+        `;
         modal.innerHTML = `
-            <div class="modal-content">
-                <h2>Record Payment</h2>
-                <p>Student: ${fee.studentName} (${fee.className})</p>
-                <p>Balance: ${this.formatCurrency(balance)}</p>
-                <label>Amount:</label>
-                <input type="number" id="modal-amount" min="0" max="${balance}" step="0.01" required>
-                <label>Payment Method:</label>
-                <select id="modal-method">
-                    <option value="Cash">Cash</option>
-                    <option value="Mpesa">Mpesa</option>
-                    <option value="Bank">Bank</option>
-                </select>
-                <div id="reference-container" style="display:none;">
-                    <label>Reference Number:</label>
-                    <input type="text" id="modal-reference">
-                </div>
-                <label>Notes (optional):</label>
-                <input type="text" id="modal-notes">
+            <h2>Record Payment</h2>
+            <p>Student: ${fee.studentName} (${fee.className})</p>
+            <p>Balance: ${this.formatCurrency(balance)}</p>
+            <label>Amount:</label>
+            <input type="number" id="modal-amount" min="0" max="${balance}" step="0.01" style="width:100%;margin-bottom:10px;">
+            <label>Payment Method:</label>
+            <div>
+                <label><input type="radio" name="method" value="Cash" checked> Cash</label>
+                <label><input type="radio" name="method" value="Mpesa"> Mpesa</label>
+                <label><input type="radio" name="method" value="Bank"> Bank</label>
+            </div>
+            <div id="reference-container" style="display:none;margin-top:10px;">
+                <label>Reference Number:</label>
+                <input type="text" id="modal-reference" style="width:100%;">
+            </div>
+            <label>Notes (optional):</label>
+            <input type="text" id="modal-notes" style="width:100%;margin-bottom:10px;">
+            <div style="text-align:right;">
+                <button id="modal-cancel" style="margin-right:5px;">Cancel</button>
                 <button id="modal-submit">Submit</button>
-                <button id="modal-cancel">Cancel</button>
             </div>
         `;
-        document.body.appendChild(modal);
+        overlay.appendChild(modal);
+        document.body.appendChild(overlay);
 
         const amountInput = modal.querySelector('#modal-amount');
-        const methodSelect = modal.querySelector('#modal-method');
         const referenceContainer = modal.querySelector('#reference-container');
         const referenceInput = modal.querySelector('#modal-reference');
         const notesInput = modal.querySelector('#modal-notes');
         const submitBtn = modal.querySelector('#modal-submit');
         const cancelBtn = modal.querySelector('#modal-cancel');
+        const radios = modal.querySelectorAll('input[name="method"]');
 
-        methodSelect.onchange = () => {
-            if (methodSelect.value === 'Mpesa' || methodSelect.value === 'Bank') {
-                referenceContainer.style.display = 'block';
-            } else {
-                referenceContainer.style.display = 'none';
-            }
+        const updateReference = () => {
+            const method = Array.from(radios).find(r => r.checked).value;
+            referenceContainer.style.display = (method === 'Mpesa' || method === 'Bank') ? 'block' : 'none';
         };
+        radios.forEach(r => r.addEventListener('change', updateReference));
+        updateReference();
 
-        cancelBtn.onclick = () => {
-            modal.remove();
-            resolve(null);
-        };
-
+        cancelBtn.onclick = () => { overlay.remove(); resolve(null); };
         submitBtn.onclick = () => {
             const amount = parseFloat(amountInput.value);
-            const method = methodSelect.value;
+            const method = Array.from(radios).find(r => r.checked).value;
             const reference = (method === 'Mpesa' || method === 'Bank') ? referenceInput.value.trim() : `PAY-${Date.now()}`;
             const notes = notesInput.value.trim() || 'Payment recorded via accountant portal';
 
-            if (!amount || amount <= 0 || amount > balance) {
-                alert('Enter a valid amount');
-                return;
-            }
+            if (!amount || amount <= 0 || amount > balance) return alert('Enter a valid amount');
+            if ((method === 'Mpesa' || method === 'Bank') && !reference) return alert('Reference required');
 
-            if ((method === 'Mpesa' || method === 'Bank') && !reference) {
-                alert('Reference number is required');
-                return;
-            }
-
-            modal.remove();
+            overlay.remove();
             resolve({ amount, paymentMethod: method, reference, notes });
         };
     });
 }
 
-// Print receipt
+// Receipt generation (fixed paymentMethod)
 printReceipt(data) {
     const receiptWindow = window.open('', '_blank');
     receiptWindow.document.write(`
         <html>
-        <head>
-            <title>Payment Receipt</title>
-            <style>
-                body { font-family: Arial; padding: 20px; }
-                h2 { text-align: center; }
-                .receipt { border: 1px solid #000; padding: 20px; }
-                .row { margin-bottom: 10px; }
-            </style>
-        </head>
+        <head><title>Payment Receipt</title>
+        <style>
+            body { font-family: Arial; padding: 20px; }
+            h2 { text-align: center; }
+            .receipt { border: 1px solid #000; padding: 20px; }
+            .row { margin-bottom: 10px; }
+        </style></head>
         <body>
             <div class="receipt">
                 <h2>DESTINY DETERMINERS ACADEMY</h2>
@@ -833,7 +824,7 @@ printReceipt(data) {
                 <div class="row"><strong>Student:</strong> ${data.studentName}</div>
                 <div class="row"><strong>Class:</strong> ${data.className}</div>
                 <div class="row"><strong>Amount Paid:</strong> ${this.formatCurrency(data.amount)}</div>
-                <div class="row"><strong>Payment Method:</strong> ${data.method}</div>
+                <div class="row"><strong>Payment Method:</strong> ${data.paymentMethod}</div>
                 ${data.reference ? `<div class="row"><strong>Reference:</strong> ${data.reference}</div>` : ''}
                 <div class="row"><strong>Balance:</strong> ${this.formatCurrency(data.balance)}</div>
                 <div class="row"><strong>Date:</strong> ${new Date().toLocaleString()}</div>
