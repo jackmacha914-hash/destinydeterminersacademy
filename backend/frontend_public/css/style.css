@@ -1631,50 +1631,141 @@ margin-right:5px;
     justify-content: flex-end;
     gap: 10px;
 }
-/* Modal Base */
+/* ======================== Meals & Collections ======================== */
+
+/* ---------- Modals ---------- */
 .mc-modal {
-    display: none;
+    display: none; /* hidden by default */
     position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.5);
-    z-index: 9999;
-    align-items: center;
-    justify-content: center;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5); /* semi-transparent overlay */
+    overflow: auto;
+    transition: all 0.3s ease;
 }
 
-/* Show modal */
 .mc-modal.mc-show {
-    display: flex !important;
+    display: block;
 }
 
 .mc-modal-content {
-    background: #fff;
+    background-color: #fff;
+    margin: 5% auto;
     padding: 20px;
-    border-radius: 8px;
-    width: 400px;
+    width: 450px;
     max-width: 90%;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    position: relative;
 }
 
 .mc-close {
-    float: right;
+    position: absolute;
+    top: 10px;
+    right: 15px;
     font-size: 24px;
+    font-weight: bold;
+    color: #333;
     cursor: pointer;
 }
 
-.mc-btn {
-    padding: 8px 15px;
-    margin-bottom: 10px;
+.mc-close:hover {
+    color: #f00;
 }
 
+/* ---------- Buttons ---------- */
+.mc-btn {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    padding: 8px 16px;
+    margin: 5px 2px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: 0.2s;
+}
+
+.mc-btn:hover {
+    background-color: #0056b3;
+}
+
+.mc-btn-submit {
+    background-color: #28a745;
+}
+
+.mc-btn-submit:hover {
+    background-color: #1e7e34;
+}
+
+/* ---------- Inputs & Dropdowns ---------- */
+.mc-input {
+    width: 100%;
+    padding: 6px 10px;
+    margin: 5px 0 12px 0;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+/* ---------- Filters ---------- */
+.mc-filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
+
+/* ---------- Tables ---------- */
 .mc-records-table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 10px;
+    font-size: 14px;
+    min-width: 400px;
 }
 
 .mc-records-table th,
 .mc-records-table td {
-    border: 1px solid #ccc;
-    padding: 6px;
+    border: 1px solid #ddd;
+    padding: 8px;
     text-align: left;
+}
+
+.mc-records-table th {
+    background-color: #f8f9fa;
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.2s;
+}
+
+.mc-records-table th:hover {
+    background-color: #e2e6ea;
+}
+
+.mc-records-table tbody tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.mc-records-table tbody tr:hover {
+    background-color: #f1f1f1;
+}
+
+/* ---------- Export / Print Buttons ---------- */
+.mc-actions {
+    margin: 10px 0;
+}
+
+/* ---------- Responsive ---------- */
+@media screen and (max-width: 600px) {
+    .mc-modal-content {
+        width: 95%;
+    }
+    .mc-filters {
+        flex-direction: column;
+        align-items: flex-start;
+    }
 }
