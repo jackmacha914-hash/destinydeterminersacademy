@@ -647,119 +647,84 @@ if (this.feesYearFilter) {
         this.showNotification('Viewing fee details for: ' + feeId, 'info');
     }
     
-class AccountantFees {
-
-    constructor() {
-        this.feesTableBody = document.querySelector('#fees-table tbody'); // your table body
-    }
-
-    /* ================================
-       LOAD AND RENDER FEES
-    ================================= */
-    async loadFeesWithFilters() {
+async recordPayment(feeId) {
         try {
-            const token = localStorage.getItem('token');
-            if (!token) throw new Error('Not logged in');
-
-            const response = await fetch('https://destinydeterminersacademy.onrender.com/api/fees', {
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Accept': 'application/json'
-                }
-            });
-
-            if (!response.ok) {
-                const text = await response.text();
-                throw new Error(`Failed to fetch fees: ${text}`);
-            }
-
-            const data = await response.json();
-            this.renderFees(data.fees || data);
-
-        } catch (err) {
-            console.error('Error loading fees:', err);
-            this.showNotification(err.message || 'Failed to load fees', 'error');
-        }
-    }
-
-    renderFees(fees) {
-        if (!this.feesTableBody) return;
-
-        this.feesTableBody.innerHTML = ''; // clear old rows
-
-        fees.forEach(fee => {
-            const row = document.createElement('tr');
-            row.dataset.feeId = fee._id || fee.id;
-
-            row.innerHTML = `
-                <td>${fee.studentName}</td>
-                <td>${fee.className}</td>
-                <td>${fee.totalFees}</td>
-                <td>${fee.paidAmount || 0}</td>
-                <td>${(fee.totalFees - (fee.paidAmount || 0))}</td>
-                <td>${fee.term || ''}</td>
-                <td>${fee.status || ''}</td>
-                <td>${fee.dueDate || ''}</td>
-                <td>${fee.academicYear || ''}</td>
-                <td>
-                    <button data-action="record-payment" data-fee-id="${fee._id || fee.id}">
-                        Record Payment
-                    </button>
-                </td>
-            `;
-
-            this.feesTableBody.appendChild(row);
-
-            const btn = row.querySelector('[data-action="record-payment"]');
-            btn.addEventListener('click', () => this.recordPayment(fee._id || fee.id));
-        });
-    }
-
-    /* ================================
-       NOTIFICATIONS
-    ================================= */
-    showNotification(message, type = 'info') {
-        alert(`${type.toUpperCase()}: ${message}`);
-    }
-
-    /* ================================
-       RECORD PAYMENT
-    ================================= */
-    async recordPayment(feeId) {
-        let paymentBtn = null;
-        let originalText = 'Record Payment';
-
-        try {
-            console.log('=== Starting recordPayment ===', feeId);
-
-            const token = localStorage.getItem('token');
-            if (!token) throw new Error('Not logged in');
-
+            console.log('=== Starting recordPayment ===');
+            console.log('Fee ID:', feeId);
+            
+            // Get the fee details with payments
             const fee = await this.getFeeById(feeId);
-            if (!fee) throw new Error('Fee record not found');
-
+            if (!fee) {
+                throw new Error('Fee record not found');
+            }
+            
+            console.log('Current fee data:', fee);
+            
+            // Calculate balance
             const totalFees = parseFloat(fee.totalFees || fee.amount || 0);
             const paidAmount = parseFloat(fee.paidAmount || fee.amountPaid || 0);
             const balance = totalFees - paidAmount;
-
+            
+            console.log('Payment calculations:', { totalFees, paidAmount, balance });
+            
             if (balance <= 0) {
                 this.showNotification('This fee is already fully paid', 'info');
                 return;
             }
+            
+            // Show a payment modal or form
+        // 1️⃣ Ask Amount
+const amountInput = prompt(
+    `Enter payment amount (Maximum: ${this.formatCurrency(balance)})`
+);
 
-            const paymentData = await this.showPaymentModal(fee, balance);
-            if (!paymentData) return;
+if (!amountInput) return;
 
-            paymentBtn = document.querySelector(`[data-action="record-payment"][data-fee-id="${feeId}"]`);
-            if (paymentBtn) {
-                originalText = paymentBtn.textContent;
-                paymentBtn.disabled = true;
-                paymentBtn.textContent = 'Processing...';
-            }
+const paymentAmount = parseFloat(amountInput);
 
-            const response = await fetch(
-                `https://destinydeterminersacademy.onrender.com/api/fees/${feeId}/payments`,
-                {
+if (isNaN(paymentAmount) || paymentAmount <= 0) {
+    this.showNotification('Please enter a valid payment amount', 'error');
+    return;
+}
+
+if (paymentAmount > balance) {
+    this.showNotification(
+        `Amount cannot exceed ${this.formatCurrency(balance)}`,
+        'error'
+    );
+    return;
+}
+
+// 2️⃣ Ask Payment Method
+const methodInput = prompt(
+    `Select Payment Method:\n1 = Cash\n2 = Mpesa\n3 = Bank`
+);
+
+let paymentMethod = 'Cash';
+
+if (methodInput === '2') paymentMethod = 'Mpesa';
+if (methodInput === '3') paymentMethod = 'Bank';
+
+// 3️⃣ Ask Reference if needed
+let reference = '';
+if (paymentMethod === 'Mpesa' || paymentMethod === 'Bank') {
+    reference = prompt(`Enter ${paymentMethod} Reference Number:`);
+    if (!reference) {
+        this.showNotification('Reference number is required', 'error');
+        return;
+    }
+}
+
+const paymentData = {
+    amount: paymentAmount,
+    paymentMethod,
+    reference,
+    notes: 'Payment recorded via accountant portal'
+};
+                
+                console.log('Sending payment data:', paymentData);
+                
+                const response = await fetch(`https://destinydeterminersacademy.onrender.com/api/fees/${feeId}/payments`, {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${token}`,
@@ -767,123 +732,128 @@ class AccountantFees {
                         'Accept': 'application/json'
                     },
                     body: JSON.stringify(paymentData)
+                });
+                
+                console.log('Response status:', response.status);
+                
+                if (!response.ok) {
+                    let errorDetails;
+                    try {
+                        const errorData = await response.json();
+                        errorDetails = errorData.message || errorData.error || 'Unknown error';
+                        console.error('Backend error details:', errorData);
+                    } catch (parseError) {
+                        const text = await response.text();
+                        errorDetails = text || 'Failed to parse error response';
+                        console.error('Raw error response:', text);
+                    }
+                    throw new Error(`Payment failed (${response.status}): ${errorDetails}`);
                 }
-            );
+                
+                // Get the updated fee with payment details
+                const responseData = await response.json();
+                console.log('API Response:', responseData);
+                
+                // The fee might be nested in a 'fee' property or be the root object
+                const updatedFee = responseData.fee || responseData;
+                
+                if (!updatedFee) {
+                    throw new Error('No fee data returned from server');
+                }
+                
+                console.log('Updated fee data:', updatedFee);
+                
+                // Force a complete refresh of the fees list
+await this.loadFeesWithFilters();
 
-            if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(errorText || 'Payment failed');
+// ✅ ADD RECEIPT LOGIC RIGHT HERE
+this.printReceipt({
+    studentName: fee.studentName,
+    className: fee.className,
+    amount: paymentAmount,
+    method: paymentData.paymentMethod,
+    reference: paymentData.reference,
+    balance: balance - paymentAmount
+});
+
+// Show success message
+this.showNotification('Payment recorded successfully', 'success');
+                
+                // Additional check: Try to update the specific row
+                setTimeout(() => {
+                    const feeRow = document.querySelector(`tr[data-fee-id="${feeId}"]`);
+                    console.log('Looking for fee row with ID:', feeId);
+                    console.log('Found row:', feeRow);
+                    
+                    if (feeRow) {
+                        console.log('Updating specific row...');
+                        this.createFeeRow(updatedFee).then(updatedRow => {
+                            if (updatedRow && feeRow.parentNode) {
+                                feeRow.parentNode.replaceChild(updatedRow, feeRow);
+                                console.log('Row updated successfully');
+                            }
+                        });
+                    } else {
+                        console.log('Row not found, table should be refreshed by loadFeesWithFilters');
+                    }
+                }, 500);
+                
+            } finally {
+                // Restore button state
+                if (paymentBtn) {
+                    paymentBtn.disabled = false;
+                    paymentBtn.textContent = originalText;
+                }
             }
-
-            await response.json();
-
-            if (typeof this.loadFeesWithFilters === 'function') {
-                await this.loadFeesWithFilters();
-            }
-
-            this.generateReceipt({
-                studentName: fee.studentName,
-                className: fee.className,
-                paymentAmount: paymentData.amount,
-                balance: balance - paymentData.amount,
-                paymentMethod: paymentData.paymentMethod,
-                reference: paymentData.reference
-            });
-
-            this.showNotification('Payment recorded successfully', 'success');
-
+            
         } catch (error) {
             console.error('Error in recordPayment:', error);
-            this.showNotification(error.message || 'Failed to record payment', 'error');
-        } finally {
-            if (paymentBtn) {
-                paymentBtn.disabled = false;
-                paymentBtn.textContent = originalText;
+            this.showNotification(`Error: ${error.message || 'Failed to record payment'}`, 'error');
+            
+            // Force refresh on error to ensure UI is in sync
+            try {
+                await this.loadFeesWithFilters();
+            } catch (refreshError) {
+                console.error('Error refreshing fees after payment error:', refreshError);
             }
         }
-    }
+    printReceipt(data) {
+    const receiptWindow = window.open('', '_blank');
 
-    /* ================================
-       SHOW PAYMENT MODAL
-    ================================= */
-    async showPaymentModal(fee, balance) {
-        return new Promise((resolve) => {
-            const modal = document.getElementById('payment-modal');
-            if (!modal) return resolve(null);
+    receiptWindow.document.write(`
+        <html>
+        <head>
+            <title>Payment Receipt</title>
+            <style>
+                body { font-family: Arial; padding: 20px; }
+                h2 { text-align: center; }
+                .receipt { border: 1px solid #000; padding: 20px; }
+                .row { margin-bottom: 10px; }
+            </style>
+        </head>
+        <body>
+            <div class="receipt">
+                <h2>DESTINY DETERMINERS ACADEMY</h2>
+                <p><strong>Receipt No:</strong> RCPT-${Date.now()}</p>
+                <div class="row"><strong>Student:</strong> ${data.studentName}</div>
+                <div class="row"><strong>Class:</strong> ${data.className}</div>
+                <div class="row"><strong>Amount Paid:</strong> Ksh ${data.amount}</div>
+                <div class="row"><strong>Payment Method:</strong> ${data.method}</div>
+                ${data.reference ? `<div class="row"><strong>Reference:</strong> ${data.reference}</div>` : ''}
+                <div class="row"><strong>Balance:</strong> Ksh ${data.balance}</div>
+                <div class="row"><strong>Date:</strong> ${new Date().toLocaleString()}</div>
+            </div>
+            <script>
+                window.onload = function() { window.print(); }
+            </script>
+        </body>
+        </html>
+    `);
 
-            const studentInfo = document.getElementById('modal-student-info');
-            const balanceInfo = document.getElementById('modal-balance-info');
-            const amountInput = document.getElementById('payment-amount');
-            const methodSelect = document.getElementById('payment-method');
-            const referenceInput = document.getElementById('payment-reference');
-            const referenceLabel = document.getElementById('reference-label');
-            const notesInput = document.getElementById('payment-notes');
-            const cancelBtn = document.getElementById('payment-cancel');
-            const submitBtn = document.getElementById('payment-submit');
-
-            if (!studentInfo || !balanceInfo || !amountInput || !methodSelect || !referenceInput || !referenceLabel || !cancelBtn || !submitBtn) {
-                console.error('Some modal elements are missing in HTML');
-                return resolve(null);
-            }
-
-            studentInfo.textContent = `${fee.studentName} (${fee.className})`;
-            balanceInfo.textContent = `Balance: Ksh ${balance.toLocaleString()}`;
-
-            amountInput.value = '';
-            methodSelect.value = 'Cash';
-            referenceInput.value = '';
-            notesInput.value = '';
-
-            referenceInput.classList.add('hidden');
-            referenceLabel.classList.add('hidden');
-            modal.classList.remove('hidden');
-
-            methodSelect.onchange = () => {
-                if (['Mpesa','Bank'].includes(methodSelect.value)) {
-                    referenceInput.classList.remove('hidden');
-                    referenceLabel.classList.remove('hidden');
-                } else {
-                    referenceInput.classList.add('hidden');
-                    referenceLabel.classList.add('hidden');
-                }
-            };
-
-            cancelBtn.onclick = () => {
-                modal.classList.add('hidden');
-                resolve(null);
-            };
-
-            submitBtn.onclick = () => {
-                const amount = parseFloat(amountInput.value);
-                if (!amount || amount <= 0) { alert('Enter a valid payment amount'); return; }
-                if (amount > balance) { alert(`Amount cannot exceed balance of Ksh ${balance}`); return; }
-
-                const paymentData = {
-                    amount,
-                    paymentMethod: methodSelect.value,
-                    reference: ['Mpesa','Bank'].includes(methodSelect.value) ? referenceInput.value.trim() : '',
-                    notes: notesInput.value.trim()
-                };
-
-                modal.classList.add('hidden');
-                resolve(paymentData);
-            };
-        });
-    }
-
-    /* ================================
-       DUMMY METHODS (replace with your own)
-    ================================= */
-    async getFeeById(feeId) {
-        // Implement API call or look up from loaded fees
-        // This is just a placeholder:
-        return { _id: feeId, studentName: 'Test Student', className: 'Form 1', totalFees: 1000, paidAmount: 200, term: 'Term 1', status: 'Pending', dueDate: '2026-03-01', academicYear: '2026' };
-    }
-
-    generateReceipt(data) {
-        console.log('Generating receipt:', data);
-    }
+    receiptWindow.document.close();
 }
+    }
+    
     /**
      * View payment history for a specific fee
      * @param {string} feeId - The ID of the fee to view
