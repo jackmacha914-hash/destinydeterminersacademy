@@ -2286,6 +2286,50 @@ window.fetch = async (input, init = {}) => {
 </div>
 
         <!--meals & collections-->
+        <section id="meals-collections-section" class="tab-section" style="display:none;">
+    <h2>Meals & Collections</h2>
+
+    <!-- Meals Section -->
+    <div class="sub-section">
+        <h3>Meals</h3>
+        <button id="add-meal-btn" class="btn">Add Meal Payment</button>
+        <table id="meals-table" class="records-table">
+            <thead>
+                <tr>
+                    <th>Student</th>
+                    <th>Meal Type</th>
+                    <th>Date</th>
+                    <th>Frequency</th>
+                    <th>Amount</th>
+                    <th>Receipt</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Meal records will be populated dynamically -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Other Charges Section -->
+    <div class="sub-section">
+        <h3>Other Charges</h3>
+        <button id="add-other-charge-btn" class="btn">Add Other Charge</button>
+        <table id="other-charges-table" class="records-table">
+            <thead>
+                <tr>
+                    <th>Student</th>
+                    <th>Charge Type</th>
+                    <th>Date</th>
+                    <th>Amount</th>
+                    <th>Receipt</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Other charges records will be populated dynamically -->
+            </tbody>
+        </table>
+    </div>
+</section>
         <div id="meal-modal" class="modal">
     <div class="modal-content">
         <span class="close" id="close-meal-modal">&times;</span>
@@ -2317,51 +2361,6 @@ window.fetch = async (input, init = {}) => {
             <button type="submit">Save & Print Receipt</button>
         </form>
     </div>
-</div>
-
-        <div id="meals-collections-section" class="tab-content">
-
-    <!-- Meals Section -->
-    <section>
-        <h3>Meals</h3>
-        <button id="add-meal-btn" class="btn">Add Meal Payment</button>
-        <table id="meals-table" class="records-table">
-            <thead>
-                <tr>
-                    <th>Student</th>
-                    <th>Meal Type</th>
-                    <th>Date</th>
-                    <th>Frequency</th>
-                    <th>Amount</th>
-                    <th>Receipt</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Meal records populated via JS -->
-            </tbody>
-        </table>
-    </section>
-
-    <!-- Other Charges Section -->
-    <section>
-        <h3>Other Charges</h3>
-        <button id="add-other-charge-btn" class="btn">Add Other Charge</button>
-        <table id="other-charges-table" class="records-table">
-            <thead>
-                <tr>
-                    <th>Student</th>
-                    <th>Charge Type</th>
-                    <th>Date</th>
-                    <th>Amount</th>
-                    <th>Receipt</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Other charges populated via JS -->
-            </tbody>
-        </table>
-    </section>
-
 </div>
       <!-- Accountant Section (Modernized) -->
         <section id="accountant-section" class="tab-section" style="display:none;">
