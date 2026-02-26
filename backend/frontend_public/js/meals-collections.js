@@ -22,6 +22,7 @@ document.getElementById("mc-meal-form")?.addEventListener("submit", function(e){
     data.receiptNumber = `MEAL-${Date.now()}-${Math.floor(Math.random()*1000)}`;
     const row = document.createElement("tr");
     row.innerHTML = `
+        <td>${data.className}</td>
         <td>${data.studentName}</td>
         <td>${data.mealType}</td>
         <td>${data.date}</td>
@@ -40,6 +41,7 @@ document.getElementById("mc-other-form")?.addEventListener("submit", function(e)
     data.receiptNumber = `CHG-${Date.now()}-${Math.floor(Math.random()*1000)}`;
     const row = document.createElement("tr");
     row.innerHTML = `
+        <td>${data.className}</td>
         <td>${data.studentName}</td>
         <td>${data.chargeType}</td>
         <td>${data.date}</td>
