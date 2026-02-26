@@ -708,7 +708,7 @@ async recordPayment(feeId) {
 
         // Print receipt automatically
         this.printReceipt({
-        studentName: fee.studentName,
+        studentName: fee.student?.name || 'N/A',
         className: fee.className,
         feeType: paymentData.feeType, // ✅ from modal
         term: paymentData.term,       // ✅ from modal
@@ -878,7 +878,7 @@ async recordPayment(feeId) {
 
         // Print receipt automatically
         this.printReceipt({
-        studentName: fee.studentName,
+        studentName: fee.student?.name || 'N/A',
         className: fee.className,
         feeType: paymentData.feeType, // ✅ from modal
         term: paymentData.term,       // ✅ from modal
