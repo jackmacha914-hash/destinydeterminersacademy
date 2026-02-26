@@ -181,6 +181,7 @@ document.getElementById("mc-other-form")?.addEventListener("submit", async funct
 document.querySelector("#mc-meal-form select[name='className']")?.addEventListener("change", async function() {
     const className = this.value;
     const studentSelect = document.getElementById("mc-meal-student");
+    if(!studentSelect) return;
     studentSelect.innerHTML = '<option value="">Loading...</option>';
 
     if (!className) {
@@ -189,15 +190,17 @@ document.querySelector("#mc-meal-form select[name='className']")?.addEventListen
     }
 
     try {
-        // Fetch all students in selected class from your API
         const res = await fetch(`/api/students?className=${encodeURIComponent(className)}`);
-        const data = await res.json(); // array of student objects
+        const data = await res.json();
         studentSelect.innerHTML = '<option value="">Select Student</option>';
-        data.forEach(record => {
-            const student = record.student;
+
+        data.forEach(student => {
+            // student is the top-level object now
+            if(!student) return;
+            const studentName = student.name || "Unnamed";
             const opt = document.createElement("option");
-            opt.value = student.name;          // actual value sent on submission
-            opt.textContent = student.displayName; // shown in dropdown
+            opt.value = studentName;
+            opt.textContent = studentName;
             studentSelect.appendChild(opt);
         });
     } catch (err) {
@@ -210,6 +213,7 @@ document.querySelector("#mc-meal-form select[name='className']")?.addEventListen
 document.querySelector("#mc-other-form select[name='className']")?.addEventListener("change", async function() {
     const className = this.value;
     const studentSelect = document.getElementById("mc-other-student");
+    if(!studentSelect) return;
     studentSelect.innerHTML = '<option value="">Loading...</option>';
 
     if (!className) {
@@ -221,11 +225,13 @@ document.querySelector("#mc-other-form select[name='className']")?.addEventListe
         const res = await fetch(`/api/students?className=${encodeURIComponent(className)}`);
         const data = await res.json();
         studentSelect.innerHTML = '<option value="">Select Student</option>';
-        data.forEach(record => {
-            const student = record.student;
+
+        data.forEach(student => {
+            if(!student) return;
+            const studentName = student.name || "Unnamed";
             const opt = document.createElement("option");
-            opt.value = student.name;
-            opt.textContent = student.displayName;
+            opt.value = studentName;
+            opt.textContent = studentName;
             studentSelect.appendChild(opt);
         });
     } catch (err) {
