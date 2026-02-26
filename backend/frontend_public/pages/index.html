@@ -2285,15 +2285,15 @@ window.fetch = async (input, init = {}) => {
     </div>
 </div>
 
-        <!--meals & collections-->
-        <section id="meals-collections-section" class="tab-section" style="display:none;">
+       <!-- Meals & Collections Section -->
+<section id="meals-collections-section" class="tab-section" style="display:none;">
     <h2>Meals & Collections</h2>
 
-    <!-- Meals Section -->
+    <!-- Meals -->
     <div class="sub-section">
         <h3>Meals</h3>
-        <button id="add-meal-btn" class="btn">Add Meal Payment</button>
-        <table id="meals-table" class="records-table">
+        <button id="mc-add-meal-btn" class="mc-btn">Add Meal Payment</button>
+        <table id="mc-meals-table" class="mc-records-table">
             <thead>
                 <tr>
                     <th>Student</th>
@@ -2304,17 +2304,15 @@ window.fetch = async (input, init = {}) => {
                     <th>Receipt</th>
                 </tr>
             </thead>
-            <tbody>
-                <!-- Meal records will be populated dynamically -->
-            </tbody>
+            <tbody></tbody>
         </table>
     </div>
 
-    <!-- Other Charges Section -->
+    <!-- Other Charges -->
     <div class="sub-section">
         <h3>Other Charges</h3>
-        <button id="add-other-charge-btn" class="btn">Add Other Charge</button>
-        <table id="other-charges-table" class="records-table">
+        <button id="mc-add-other-btn" class="mc-btn">Add Other Charge</button>
+        <table id="mc-other-table" class="mc-records-table">
             <thead>
                 <tr>
                     <th>Student</th>
@@ -2324,40 +2322,61 @@ window.fetch = async (input, init = {}) => {
                     <th>Receipt</th>
                 </tr>
             </thead>
-            <tbody>
-                <!-- Other charges records will be populated dynamically -->
-            </tbody>
+            <tbody></tbody>
         </table>
     </div>
 </section>
-        <div id="meal-modal" class="modal">
-    <div class="modal-content">
-        <span class="close" id="close-meal-modal">&times;</span>
+
+<!-- Meal Modal -->
+<div id="mc-meal-modal" class="mc-modal">
+    <div class="mc-modal-content">
+        <span class="mc-close" id="mc-close-meal">&times;</span>
         <h2>Add Meal Payment</h2>
-        <form id="meal-payment-form">
+        <form id="mc-meal-form">
             <label>Student:</label>
             <input type="text" name="studentName" required>
-
             <label>Meal Type:</label>
             <select name="mealType" required>
-                <option value="Breakfast">Breakfast</option>
-                <option value="Lunch">Lunch</option>
-                <option value="Snack">Snack</option>
+                <option>Breakfast</option>
+                <option>Lunch</option>
+                <option>Snack</option>
             </select>
-
             <label>Date:</label>
             <input type="date" name="date" required>
-
             <label>Frequency:</label>
             <select name="frequency">
-                <option value="Daily">Daily</option>
-                <option value="Weekly">Weekly</option>
-                <option value="Monthly">Monthly</option>
+                <option>Daily</option>
+                <option>Weekly</option>
+                <option>Monthly</option>
             </select>
-
             <label>Amount:</label>
             <input type="number" name="amount" required>
+            <button type="submit">Save & Print Receipt</button>
+        </form>
+    </div>
+</div>
 
+<!-- Other Charges Modal -->
+<div id="mc-other-modal" class="mc-modal">
+    <div class="mc-modal-content">
+        <span class="mc-close" id="mc-close-other">&times;</span>
+        <h2>Add Other Charge</h2>
+        <form id="mc-other-form">
+            <label>Student:</label>
+            <input type="text" name="studentName" required>
+            <label>Charge Type:</label>
+            <select name="chargeType" required>
+                <option>Diary</option>
+                <option>Assessment</option>
+                <option>Books</option>
+                <option>School Trip</option>
+                <option>Activity Fee</option>
+                <option>Admission Fee</option>
+            </select>
+            <label>Date:</label>
+            <input type="date" name="date" required>
+            <label>Amount:</label>
+            <input type="number" name="amount" required>
             <button type="submit">Save & Print Receipt</button>
         </form>
     </div>
