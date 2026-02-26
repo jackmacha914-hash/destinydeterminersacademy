@@ -1004,7 +1004,7 @@ printReceipt(data) {
                 <p><strong>Receipt No:</strong> RCPT-${Date.now()}</p>
                 <div class="row"><strong>Student:</strong> ${data.studentName}</div>
                 <div class="row"><strong>Class:</strong> ${data.className}</div>
-                <div class="row"><strong>Fee Type:</strong> ${data.FeeType}</div>
+                <div class="row"><strong>Fee Type:</strong> ${data.feeType}</div>
                 <div class="row"><strong>Term:</strong> ${data.term}</div>
                 <div class="row"><strong>Amount Paid:</strong> ${this.formatCurrency(data.amount)}</div>
                 <div class="row"><strong>Payment Method:</strong> ${data.paymentMethod}</div>
