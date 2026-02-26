@@ -1,5 +1,4 @@
-document.addEventListener('DOMContentLoaded', function () {
-
+window.onload = function() {
     (function MealsCollectionsModule() {
 
         // --------------------
@@ -11,8 +10,20 @@ document.addEventListener('DOMContentLoaded', function () {
         const mealFormMC = document.getElementById('meal-payment-form');
         const mealsTableBodyMC = document.querySelector('#meals-table tbody');
 
-        addMealBtnMC.addEventListener('click', () => mealModalMC.style.display = 'block');
-        closeMealBtnMC.addEventListener('click', () => mealModalMC.style.display = 'none');
+        if (mealModalMC && addMealBtnMC && closeMealBtnMC && mealFormMC && mealsTableBodyMC) {
+            addMealBtnMC.addEventListener('click', () => mealModalMC.style.display = 'block');
+            closeMealBtnMC.addEventListener('click', () => mealModalMC.style.display = 'none');
+
+            mealFormMC.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const mealData = Object.fromEntries(new FormData(mealFormMC).entries());
+                mealData.receiptNumber = `MEAL-${Date.now()}-${Math.floor(Math.random()*1000)}`;
+                appendRowToTable(mealsTableBodyMC, mealData, true);
+                mealModalMC.style.display = 'none';
+                mealFormMC.reset();
+                console.log('Meal Payment added:', mealData);
+            });
+        }
 
         // --------------------
         // Other Charges Modal
@@ -23,11 +34,23 @@ document.addEventListener('DOMContentLoaded', function () {
         const otherChargeFormMC = document.getElementById('other-charge-form');
         const otherChargesTableBodyMC = document.querySelector('#other-charges-table tbody');
 
-        addOtherChargeBtnMC.addEventListener('click', () => otherChargeModalMC.style.display = 'block');
-        closeOtherChargeBtnMC.addEventListener('click', () => otherChargeModalMC.style.display = 'none');
+        if (otherChargeModalMC && addOtherChargeBtnMC && closeOtherChargeBtnMC && otherChargeFormMC && otherChargesTableBodyMC) {
+            addOtherChargeBtnMC.addEventListener('click', () => otherChargeModalMC.style.display = 'block');
+            closeOtherChargeBtnMC.addEventListener('click', () => otherChargeModalMC.style.display = 'none');
+
+            otherChargeFormMC.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const otherData = Object.fromEntries(new FormData(otherChargeFormMC).entries());
+                otherData.receiptNumber = `CHG-${Date.now()}-${Math.floor(Math.random()*1000)}`;
+                appendRowToTable(otherChargesTableBodyMC, otherData, false);
+                otherChargeModalMC.style.display = 'none';
+                otherChargeFormMC.reset();
+                console.log('Other Charge added:', otherData);
+            });
+        }
 
         // --------------------
-        // Click outside to close modals
+        // Close modals when clicking outside
         // --------------------
         window.addEventListener('click', (event) => {
             if (event.target === mealModalMC) mealModalMC.style.display = 'none';
@@ -35,20 +58,10 @@ document.addEventListener('DOMContentLoaded', function () {
         });
 
         // --------------------
-        // Utility: Generate Unique Receipt Number
-        // --------------------
-        function generateReceiptNumber(prefix = 'MC') {
-            const timestamp = Date.now(); // milliseconds
-            const random = Math.floor(Math.random() * 1000); // 0-999
-            return `${prefix}-${timestamp}-${random}`;
-        }
-
-        // --------------------
-        // Helper: Append row to table
+        // Helper to append rows
         // --------------------
         function appendRowToTable(tableBody, data, isMeal = true) {
             const row = document.createElement('tr');
-
             if (isMeal) {
                 row.innerHTML = `
                     <td>${data.studentName}</td>
@@ -67,50 +80,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     <td>${data.receiptNumber}</td>
                 `;
             }
-
             tableBody.appendChild(row);
         }
 
-        // --------------------
-        // Meal Form Submission
-        // --------------------
-        mealFormMC.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const mealData = Object.fromEntries(new FormData(mealFormMC).entries());
-            mealData.receiptNumber = generateReceiptNumber('MEAL');
-
-            console.log('Meal Payment:', mealData);
-
-            // Append to table dynamically
-            appendRowToTable(mealsTableBodyMC, mealData, true);
-
-            // TODO: Send to Node.js API / MongoDB
-            // fetch('/api/payments', {...})
-
-            mealModalMC.style.display = 'none';
-            mealFormMC.reset();
-        });
-
-        // --------------------
-        // Other Charges Form Submission
-        // --------------------
-        otherChargeFormMC.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const otherData = Object.fromEntries(new FormData(otherChargeFormMC).entries());
-            otherData.receiptNumber = generateReceiptNumber('CHG');
-
-            console.log('Other Charge Payment:', otherData);
-
-            // Append to table dynamically
-            appendRowToTable(otherChargesTableBodyMC, otherData, false);
-
-            // TODO: Send to Node.js API / MongoDB
-            // fetch('/api/payments', {...})
-
-            otherChargeModalMC.style.display = 'none';
-            otherChargeFormMC.reset();
-        });
-
     })();
-
-});
+};
