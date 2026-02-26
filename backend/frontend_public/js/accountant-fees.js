@@ -651,6 +651,7 @@ async recordPayment(feeId) {
     try {
         console.log('=== Starting recordPayment ===', feeId);
 
+        // 1️⃣ Get fee details
         const fee = await this.getFeeById(feeId);
         if (!fee) throw new Error('Fee record not found');
 
@@ -663,51 +664,22 @@ async recordPayment(feeId) {
             return;
         }
 
-        // 1️⃣ Payment Amount
-        const amountInput = prompt(`Enter payment amount (Max: ${this.formatCurrency(balance)}):`).trim();
-        if (!amountInput) return;
+        // 2️⃣ Show Payment Modal instead of prompts
+        const paymentData = await this.showPaymentModal(fee, balance);
+        if (!paymentData) return; // User cancelled
 
-        const paymentAmount = parseFloat(amountInput);
-        if (isNaN(paymentAmount) || paymentAmount <= 0) {
-            this.showNotification('Please enter a valid payment amount', 'error');
-            return;
-        }
-        if (paymentAmount > balance) {
-            this.showNotification(`Amount cannot exceed ${this.formatCurrency(balance)}`, 'error');
-            return;
-        }
+        const { amount: paymentAmount, paymentMethod, reference, notes } = paymentData;
 
-        // 2️⃣ Payment Method
-        let paymentMethod = '';
-        while (!['Cash', 'Mpesa', 'Bank'].includes(paymentMethod)) {
-            const methodInput = prompt('Select Payment Method (Cash / Mpesa / Bank):').trim();
-            if (!methodInput) return;
-            paymentMethod = methodInput.charAt(0).toUpperCase() + methodInput.slice(1).toLowerCase();
-        }
-
-        // 3️⃣ Reference Number if required
-        let reference = `PAY-${Date.now()}`;
-        if (paymentMethod === 'Mpesa' || paymentMethod === 'Bank') {
-            reference = prompt(`Enter ${paymentMethod} Reference Number:`)?.trim();
-            if (!reference) {
-                this.showNotification('Reference number is required', 'error');
-                return;
-            }
-        }
-
-        // 4️⃣ Optional Notes
-        const notes = prompt('Enter any notes for this payment (optional):')?.trim() || 'Payment recorded via accountant portal';
-
-        // 5️⃣ Confirm Payment
-        const confirm = prompt(
-            `Confirm Payment Details:\nStudent: ${fee.studentName}\nClass: ${fee.className}\nAmount: ${this.formatCurrency(paymentAmount)}\nMethod: ${paymentMethod}\nReference: ${reference}\nNotes: ${notes}\n\nType YES to confirm:`
+        // 3️⃣ Confirm Payment
+        const confirm = confirm(
+            `Confirm Payment Details:\nStudent: ${fee.studentName}\nClass: ${fee.className}\nAmount: ${this.formatCurrency(paymentAmount)}\nMethod: ${paymentMethod}\nReference: ${reference}\nNotes: ${notes}`
         );
-        if (confirm?.toUpperCase() !== 'YES') {
+        if (!confirm) {
             this.showNotification('Payment cancelled by user', 'info');
             return;
         }
 
-        // 6️⃣ Send Payment
+        // 4️⃣ Send Payment
         const token = localStorage.getItem('token');
         if (!token) throw new Error('You must be logged in');
 
@@ -717,8 +689,6 @@ async recordPayment(feeId) {
             paymentBtn.disabled = true;
             paymentBtn.textContent = 'Processing...';
         }
-
-        const paymentData = { amount: paymentAmount, paymentMethod, reference, notes };
 
         const response = await fetch(`https://destinydeterminersacademy.onrender.com/api/fees/${feeId}/payments`, {
             method: 'POST',
@@ -734,21 +704,29 @@ async recordPayment(feeId) {
         const responseData = await response.json();
         const updatedFee = responseData.fee || responseData;
 
+        // 5️⃣ Refresh table
         await this.loadFeesWithFilters();
         this.showNotification('Payment recorded successfully', 'success');
 
-        // 7️⃣ Print Receipt Option
-        const printConfirm = prompt('Do you want to print a receipt? (YES/NO)');
-        if (printConfirm?.toUpperCase() === 'YES') {
-            this.printReceipt({
-                studentName: fee.studentName,
-                className: fee.className,
-                amount: paymentAmount,
-                method: paymentMethod,
-                reference,
-                balance: balance - paymentAmount
-            });
-        }
+        // 6️⃣ Automatically print receipt
+        this.printReceipt({
+            studentName: fee.studentName,
+            className: fee.className,
+            amount: paymentAmount,
+            method: paymentMethod,
+            reference,
+            balance: balance - paymentAmount
+        });
+
+        // 7️⃣ Optional: Update row directly for faster UI
+        setTimeout(() => {
+            const feeRow = document.querySelector(`tr[data-fee-id="${feeId}"]`);
+            if (feeRow) {
+                this.createFeeRow(updatedFee).then(updatedRow => {
+                    if (updatedRow && feeRow.parentNode) feeRow.parentNode.replaceChild(updatedRow, feeRow);
+                });
+            }
+        }, 300);
 
     } catch (error) {
         console.error('Error recording payment:', error);
@@ -758,6 +736,113 @@ async recordPayment(feeId) {
         const paymentBtn = document.querySelector(`[data-action="record-payment"][data-fee-id="${feeId}"]`);
         if (paymentBtn) { paymentBtn.disabled = false; paymentBtn.textContent = 'Record Payment'; }
     }
+}
+
+// Modal for payment (checkbox/radio/dropdown UI)
+async showPaymentModal(fee, balance) {
+    return new Promise((resolve) => {
+        // Create modal dynamically
+        const modal = document.createElement('div');
+        modal.className = 'payment-modal';
+        modal.innerHTML = `
+            <div class="modal-content">
+                <h2>Record Payment</h2>
+                <p>Student: ${fee.studentName} (${fee.className})</p>
+                <p>Balance: ${this.formatCurrency(balance)}</p>
+                <label>Amount:</label>
+                <input type="number" id="modal-amount" min="0" max="${balance}" step="0.01" required>
+                <label>Payment Method:</label>
+                <select id="modal-method">
+                    <option value="Cash">Cash</option>
+                    <option value="Mpesa">Mpesa</option>
+                    <option value="Bank">Bank</option>
+                </select>
+                <div id="reference-container" style="display:none;">
+                    <label>Reference Number:</label>
+                    <input type="text" id="modal-reference">
+                </div>
+                <label>Notes (optional):</label>
+                <input type="text" id="modal-notes">
+                <button id="modal-submit">Submit</button>
+                <button id="modal-cancel">Cancel</button>
+            </div>
+        `;
+        document.body.appendChild(modal);
+
+        const amountInput = modal.querySelector('#modal-amount');
+        const methodSelect = modal.querySelector('#modal-method');
+        const referenceContainer = modal.querySelector('#reference-container');
+        const referenceInput = modal.querySelector('#modal-reference');
+        const notesInput = modal.querySelector('#modal-notes');
+        const submitBtn = modal.querySelector('#modal-submit');
+        const cancelBtn = modal.querySelector('#modal-cancel');
+
+        methodSelect.onchange = () => {
+            if (methodSelect.value === 'Mpesa' || methodSelect.value === 'Bank') {
+                referenceContainer.style.display = 'block';
+            } else {
+                referenceContainer.style.display = 'none';
+            }
+        };
+
+        cancelBtn.onclick = () => {
+            modal.remove();
+            resolve(null);
+        };
+
+        submitBtn.onclick = () => {
+            const amount = parseFloat(amountInput.value);
+            const method = methodSelect.value;
+            const reference = (method === 'Mpesa' || method === 'Bank') ? referenceInput.value.trim() : `PAY-${Date.now()}`;
+            const notes = notesInput.value.trim() || 'Payment recorded via accountant portal';
+
+            if (!amount || amount <= 0 || amount > balance) {
+                alert('Enter a valid amount');
+                return;
+            }
+
+            if ((method === 'Mpesa' || method === 'Bank') && !reference) {
+                alert('Reference number is required');
+                return;
+            }
+
+            modal.remove();
+            resolve({ amount, paymentMethod: method, reference, notes });
+        };
+    });
+}
+
+// Print receipt
+printReceipt(data) {
+    const receiptWindow = window.open('', '_blank');
+    receiptWindow.document.write(`
+        <html>
+        <head>
+            <title>Payment Receipt</title>
+            <style>
+                body { font-family: Arial; padding: 20px; }
+                h2 { text-align: center; }
+                .receipt { border: 1px solid #000; padding: 20px; }
+                .row { margin-bottom: 10px; }
+            </style>
+        </head>
+        <body>
+            <div class="receipt">
+                <h2>DESTINY DETERMINERS ACADEMY</h2>
+                <p><strong>Receipt No:</strong> RCPT-${Date.now()}</p>
+                <div class="row"><strong>Student:</strong> ${data.studentName}</div>
+                <div class="row"><strong>Class:</strong> ${data.className}</div>
+                <div class="row"><strong>Amount Paid:</strong> ${this.formatCurrency(data.amount)}</div>
+                <div class="row"><strong>Payment Method:</strong> ${data.method}</div>
+                ${data.reference ? `<div class="row"><strong>Reference:</strong> ${data.reference}</div>` : ''}
+                <div class="row"><strong>Balance:</strong> ${this.formatCurrency(data.balance)}</div>
+                <div class="row"><strong>Date:</strong> ${new Date().toLocaleString()}</div>
+            </div>
+            <script>window.onload = () => window.print();</script>
+        </body>
+        </html>
+    `);
+    receiptWindow.document.close();
 }
     /**
      * View payment history for a specific fee
