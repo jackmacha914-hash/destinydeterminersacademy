@@ -1,66 +1,54 @@
 window.onload = function() {
     (function MealsCollectionsModule() {
 
-        // --------------------
-        // Meal Modal
-        // --------------------
-        const mealModalMC = document.getElementById('meal-modal');
-        const addMealBtnMC = document.getElementById('add-meal-btn');
-        const closeMealBtnMC = document.getElementById('close-meal-modal');
-        const mealFormMC = document.getElementById('meal-payment-form');
-        const mealsTableBodyMC = document.querySelector('#meals-table tbody');
+        // ---------- Meal Modal ----------
+        const mealModal = document.getElementById('mc-meal-modal');
+        const addMealBtn = document.getElementById('mc-add-meal-btn');
+        const closeMeal = document.getElementById('mc-close-meal');
+        const mealForm = document.getElementById('mc-meal-form');
+        const mealsTable = document.querySelector('#mc-meals-table tbody');
 
-        if (mealModalMC && addMealBtnMC && closeMealBtnMC && mealFormMC && mealsTableBodyMC) {
-            addMealBtnMC.addEventListener('click', () => mealModalMC.style.display = 'block');
-            closeMealBtnMC.addEventListener('click', () => mealModalMC.style.display = 'none');
-
-            mealFormMC.addEventListener('submit', (e) => {
+        if (mealModal && addMealBtn && closeMeal && mealForm && mealsTable) {
+            addMealBtn.onclick = () => mealModal.style.display = 'block';
+            closeMeal.onclick = () => mealModal.style.display = 'none';
+            mealForm.onsubmit = (e) => {
                 e.preventDefault();
-                const mealData = Object.fromEntries(new FormData(mealFormMC).entries());
-                mealData.receiptNumber = `MEAL-${Date.now()}-${Math.floor(Math.random()*1000)}`;
-                appendRowToTable(mealsTableBodyMC, mealData, true);
-                mealModalMC.style.display = 'none';
-                mealFormMC.reset();
-                console.log('Meal Payment added:', mealData);
-            });
+                const data = Object.fromEntries(new FormData(mealForm).entries());
+                data.receiptNumber = `MEAL-${Date.now()}-${Math.floor(Math.random()*1000)}`;
+                appendRow(mealsTable, data, true);
+                mealModal.style.display = 'none';
+                mealForm.reset();
+            };
         }
 
-        // --------------------
-        // Other Charges Modal
-        // --------------------
-        const otherChargeModalMC = document.getElementById('other-charge-modal');
-        const addOtherChargeBtnMC = document.getElementById('add-other-charge-btn');
-        const closeOtherChargeBtnMC = document.getElementById('close-other-charge-modal');
-        const otherChargeFormMC = document.getElementById('other-charge-form');
-        const otherChargesTableBodyMC = document.querySelector('#other-charges-table tbody');
+        // ---------- Other Charges Modal ----------
+        const otherModal = document.getElementById('mc-other-modal');
+        const addOtherBtn = document.getElementById('mc-add-other-btn');
+        const closeOther = document.getElementById('mc-close-other');
+        const otherForm = document.getElementById('mc-other-form');
+        const otherTable = document.querySelector('#mc-other-table tbody');
 
-        if (otherChargeModalMC && addOtherChargeBtnMC && closeOtherChargeBtnMC && otherChargeFormMC && otherChargesTableBodyMC) {
-            addOtherChargeBtnMC.addEventListener('click', () => otherChargeModalMC.style.display = 'block');
-            closeOtherChargeBtnMC.addEventListener('click', () => otherChargeModalMC.style.display = 'none');
-
-            otherChargeFormMC.addEventListener('submit', (e) => {
+        if (otherModal && addOtherBtn && closeOther && otherForm && otherTable) {
+            addOtherBtn.onclick = () => otherModal.style.display = 'block';
+            closeOther.onclick = () => otherModal.style.display = 'none';
+            otherForm.onsubmit = (e) => {
                 e.preventDefault();
-                const otherData = Object.fromEntries(new FormData(otherChargeFormMC).entries());
-                otherData.receiptNumber = `CHG-${Date.now()}-${Math.floor(Math.random()*1000)}`;
-                appendRowToTable(otherChargesTableBodyMC, otherData, false);
-                otherChargeModalMC.style.display = 'none';
-                otherChargeFormMC.reset();
-                console.log('Other Charge added:', otherData);
-            });
+                const data = Object.fromEntries(new FormData(otherForm).entries());
+                data.receiptNumber = `CHG-${Date.now()}-${Math.floor(Math.random()*1000)}`;
+                appendRow(otherTable, data, false);
+                otherModal.style.display = 'none';
+                otherForm.reset();
+            };
         }
 
-        // --------------------
-        // Close modals when clicking outside
-        // --------------------
-        window.addEventListener('click', (event) => {
-            if (event.target === mealModalMC) mealModalMC.style.display = 'none';
-            if (event.target === otherChargeModalMC) otherChargeModalMC.style.display = 'none';
-        });
+        // ---------- Click outside to close ----------
+        window.onclick = (e) => {
+            if (e.target === mealModal) mealModal.style.display = 'none';
+            if (e.target === otherModal) otherModal.style.display = 'none';
+        };
 
-        // --------------------
-        // Helper to append rows
-        // --------------------
-        function appendRowToTable(tableBody, data, isMeal = true) {
+        // ---------- Helper ----------
+        function appendRow(tableBody, data, isMeal=true) {
             const row = document.createElement('tr');
             if (isMeal) {
                 row.innerHTML = `
