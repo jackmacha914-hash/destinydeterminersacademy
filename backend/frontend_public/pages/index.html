@@ -2294,15 +2294,18 @@ window.fetch = async (input, init = {}) => {
         <h3>Meals</h3>
         <button id="mc-add-meal-btn" class="mc-btn">Add Meal Payment</button>
         <table id="mc-meals-table" class="mc-records-table">
+            <!-- Meals Search -->
+              <label>Search Student:</label>
+              <input type="text" id="mc-search-meals" class="mc-input" placeholder="Enter student name">
             <thead>
                 <tr>
-                    <th>Class</th>
-                    <th>Student</th>
-                    <th>Meal Type</th>
-                    <th>Date</th>
-                    <th>Frequency</th>
-                    <th>Amount</th>
-                    <th>Receipt</th>
+                    <th data-sort="className">Class</th>
+                    <th data-sort="studentName">Student</th>
+                    <th data-sort="mealType">Meal Type</th>
+                    <th data-sort="date">Date</th>
+                    <th data-sort="frequency">Frequency</th>
+                    <th data-sort="amount">Amount</th>
+                    <th data-sort="receiptNumber">Receipt</th>
                 </tr>
             </thead>
             <tbody>
@@ -2315,15 +2318,18 @@ window.fetch = async (input, init = {}) => {
     <div class="sub-section">
         <h3>Other Charges</h3>
         <button id="mc-add-other-btn" class="mc-btn">Add Other Charge</button>
-        <table id="mc-other-table" class="mc-records-table">
+        <table id="mc-other-table" class="mc-records-table"> 
+            <!-- Meals Search -->
+           <label>Search Student:</label>
+           <input type="text" id="mc-search-meals" class="mc-input" placeholder="Enter student name">
             <thead>
                 <tr>
-                    <th>Class</th>
-                    <th>Student</th>
-                    <th>Charge Type</th>
-                    <th>Date</th>
-                    <th>Amount</th>
-                    <th>Receipt</th>
+                 <th data-sort="className">Class</th>
+                 <th data-sort="studentName">Student</th>
+                 <th data-sort="chargeType">Charge Type</th>
+                 <th data-sort="date">Date</th>
+                 <th data-sort="amount">Amount</th>
+                 <th data-sort="receiptNumber">Receipt</th>
                 </tr>
             </thead>
             <tbody>
