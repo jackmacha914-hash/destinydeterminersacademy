@@ -2296,6 +2296,7 @@ window.fetch = async (input, init = {}) => {
         <table id="mc-meals-table" class="mc-records-table">
             <thead>
                 <tr>
+                    <th>Class</th>
                     <th>Student</th>
                     <th>Meal Type</th>
                     <th>Date</th>
@@ -2317,6 +2318,7 @@ window.fetch = async (input, init = {}) => {
         <table id="mc-other-table" class="mc-records-table">
             <thead>
                 <tr>
+                    <th>Class</th>
                     <th>Student</th>
                     <th>Charge Type</th>
                     <th>Date</th>
@@ -2333,66 +2335,126 @@ window.fetch = async (input, init = {}) => {
 
         <!-- Meal Modal -->
 <div id="mc-meal-modal" class="mc-modal">
-    <div class="mc-modal-content">
-        <span class="mc-close" id="mc-close-meal">&times;</span>
-        <h2>Add Meal Payment</h2>
-        <form id="mc-meal-form">
-            <label>Student:</label>
-            <input type="text" name="studentName" required>
+  <div class="mc-modal-content">
+    <span class="mc-close" id="mc-close-meal">&times;</span>
+    <h2>Add Meal Payment</h2>
+    <form id="mc-meal-form">
+      <label>Class:</label>
+      <select name="className" required class="mc-input">
+        <option value="">All Classes</option>
+                            <optgroup label="Pre-Primary">
+                                <option value="Baby Class">Baby Class</option>
+                                <option value="PP1">PP1</option>
+                                <option value="PP2">PP2</option>
+                            </optgroup>
+                            <optgroup label="Lower Primary">
+                                <option value="Grade 1">Grade 1</option>
+                                <option value="Grade 2">Grade 2</option>
+                                <option value="Grade 3">Grade 3</option>
+                            </optgroup>
+                            <optgroup label="Upper Primary">
+                                <option value="Grade 4">Grade 4</option>
+                                <option value="Grade 5">Grade 5</option>
+                                <option value="Grade 6">Grade 6</option>
+                            </optgroup>
+                            <optgroup label="Junior Secondary">
+                                <option value="Grade 7">Grade 7</option>
+                                <option value="Grade 8">Grade 8</option>
+                                <option value="Grade 9">Grade 9</option>
+                            </optgroup>
+                            <optgroup label="Senior School">
+                                <option value="Grade 10">Grade 10</option>
+                                <option value="Grade 11">Grade 11</option>
+                                <option value="Grade 12">Grade 12</option>
+                            </optgroup>
+      </select>
 
-            <label>Meal Type:</label>
-            <select name="mealType" required>
-                <option>Breakfast</option>
-                <option>Lunch</option>
-                <option>Snack</option>
-            </select>
+      <label>Student:</label>
+      <input type="text" name="studentName" required class="mc-input">
 
-            <label>Date:</label>
-            <input type="date" name="date" required>
+      <label>Meal Type:</label>
+      <select name="mealType" required class="mc-input">
+        <option>Breakfast</option>
+        <option>Lunch</option>
+        <option>Snack</option>
+      </select>
 
-            <label>Frequency:</label>
-            <select name="frequency">
-                <option>Daily</option>
-                <option>Weekly</option>
-                <option>Monthly</option>
-            </select>
+      <label>Date:</label>
+      <input type="date" name="date" required class="mc-input">
 
-            <label>Amount:</label>
-            <input type="number" name="amount" required>
+      <label>Frequency:</label>
+      <select name="frequency" class="mc-input">
+        <option>Daily</option>
+        <option>Weekly</option>
+        <option>Monthly</option>
+      </select>
 
-            <button type="submit">Save & Print Receipt</button>
-        </form>
-    </div>
+      <label>Amount:</label>
+      <input type="number" name="amount" required class="mc-input">
+
+      <button type="submit" class="mc-btn-submit">Save & Print Receipt</button>
+    </form>
+  </div>
 </div>
 
 <!-- Other Charges Modal -->
 <div id="mc-other-modal" class="mc-modal">
-    <div class="mc-modal-content">
-        <span class="mc-close" id="mc-close-other">&times;</span>
-        <h2>Add Other Charge</h2>
-        <form id="mc-other-form">
-            <label>Student:</label>
-            <input type="text" name="studentName" required>
+  <div class="mc-modal-content">
+    <span class="mc-close" id="mc-close-other">&times;</span>
+    <h2>Add Other Charge</h2>
+    <form id="mc-other-form">
+      <label>Class:</label>
+      <select name="className" required class="mc-input">
+        <option value="">All Classes</option>
+                            <optgroup label="Pre-Primary">
+                                <option value="Baby Class">Baby Class</option>
+                                <option value="PP1">PP1</option>
+                                <option value="PP2">PP2</option>
+                            </optgroup>
+                            <optgroup label="Lower Primary">
+                                <option value="Grade 1">Grade 1</option>
+                                <option value="Grade 2">Grade 2</option>
+                                <option value="Grade 3">Grade 3</option>
+                            </optgroup>
+                            <optgroup label="Upper Primary">
+                                <option value="Grade 4">Grade 4</option>
+                                <option value="Grade 5">Grade 5</option>
+                                <option value="Grade 6">Grade 6</option>
+                            </optgroup>
+                            <optgroup label="Junior Secondary">
+                                <option value="Grade 7">Grade 7</option>
+                                <option value="Grade 8">Grade 8</option>
+                                <option value="Grade 9">Grade 9</option>
+                            </optgroup>
+                            <optgroup label="Senior School">
+                                <option value="Grade 10">Grade 10</option>
+                                <option value="Grade 11">Grade 11</option>
+                                <option value="Grade 12">Grade 12</option>
+                            </optgroup>
+      </select>
 
-            <label>Charge Type:</label>
-            <select name="chargeType" required>
-                <option>Diary</option>
-                <option>Assessment</option>
-                <option>Book</option>
-                <option>School Trip</option>
-                <option>Activity Fee</option>
-                <option>Admission</option>
-            </select>
+      <label>Student:</label>
+      <input type="text" name="studentName" required class="mc-input">
 
-            <label>Date:</label>
-            <input type="date" name="date" required>
+      <label>Charge Type:</label>
+      <select name="chargeType" required class="mc-input">
+        <option>Diary</option>
+        <option>Assessment</option>
+        <option>Book</option>
+        <option>School Trip</option>
+        <option>Activity Fee</option>
+        <option>Admission</option>
+      </select>
 
-            <label>Amount:</label>
-            <input type="number" name="amount" required>
+      <label>Date:</label>
+      <input type="date" name="date" required class="mc-input">
 
-            <button type="submit">Save & Print Receipt</button>
-        </form>
-    </div>
+      <label>Amount:</label>
+      <input type="number" name="amount" required class="mc-input">
+
+      <button type="submit" class="mc-btn-submit">Save & Print Receipt</button>
+    </form>
+  </div>
 </div>
       <!-- Accountant Section (Modernized) -->
         <section id="accountant-section" class="tab-section" style="display:none;">
