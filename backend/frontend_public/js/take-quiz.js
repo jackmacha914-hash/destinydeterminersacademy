@@ -1,5 +1,5 @@
 // API Configuration
-const API_BASE_URL = window.API_CONFIG?.API_BASE_URL || 'https://destinydeterminersacademy.onrender.com';
+const API_BASE_URL = window.API_CONFIG?.API_BASE_URL || 'https://judahcareacademy.onrender.com';
 
 // Wait for the DOM to be fully loaded
 document.addEventListener('DOMContentLoaded', function() {

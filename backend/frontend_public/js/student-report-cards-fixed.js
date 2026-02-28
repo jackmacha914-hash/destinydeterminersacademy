@@ -50,7 +50,7 @@ class StudentReportCards {
 
             console.log('Fetching report cards for:', { studentId, term });
 
-            if (typeof API_BASE_URL === 'undefined') window.API_BASE_URL = 'https://destinydeterminersacademy.onrender.com';
+            if (typeof API_BASE_URL === 'undefined') window.API_BASE_URL = 'https://judahcareacademy.onrender.com';
 
             const marksResponse = await fetch(`${API_BASE_URL}/api/marks/student/${studentId}`, {
                 headers: {

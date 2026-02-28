@@ -123,7 +123,7 @@ class AttendanceDetails {
                 return;
             }
 
-            const baseUrl = 'https://destinydeterminersacademy.onrender.com';
+            const baseUrl = 'https://judahcareacademy.onrender.com';
             const response = await fetch(`${baseUrl}/api/attendance/${this.attendanceId}`, {
                 method: 'GET',
                 headers: {

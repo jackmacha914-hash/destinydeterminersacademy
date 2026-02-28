@@ -28,11 +28,11 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
     // Example endpoints, adjust as needed
     const [userCount, clubCount, bookCount, feeCount, eventCount] = await Promise.all([
-        fetchCount('https://destinydeterminersacademy.onrender.com/api/users'),
-        fetchCount('https://destinydeterminersacademy.onrender.com/api/clubs'),
-        fetchCount('https://destinydeterminersacademy.onrender.com/api/library'),
-        fetchCount('https://destinydeterminersacademy.onrender.com/api/fees'),
-        fetchCount('https://destinydeterminersacademy.onrender.com/api/events'),
+        fetchCount('https://judahcareacademy.onrender.com/api/users'),
+        fetchCount('https://judahcareacademy.onrender.com/api/clubs'),
+        fetchCount('https://judahcareacademy.onrender.com/api/library'),
+        fetchCount('https://judahcareacademy.onrender.com/api/fees'),
+        fetchCount('https://judahcareacademy.onrender.com/api/events'),
     ]);
 
     // Users Chart

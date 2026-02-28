@@ -181,7 +181,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
 <<<<<<< HEAD
-        const response = await fetch('https://destinydeterminersacademy.onrender.com/api/assignments', {
+        const response = await fetch('https://judahcareacademy.onrender.com/api/assignments', {
 =======
         const response = await fetch('https://school-management-system-av07.onrender.com/api/assignments', {
 >>>>>>> 5ab2b09edcd458a602a095bcc9b9d483718a7b98
@@ -327,7 +327,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
 <<<<<<< HEAD
-        const response = await fetch('https://destinydeterminersacademy.onrender.com/api/assignments', {
+        const response = await fetch('https://judahcareacademy.onrender.com/api/assignments', {
 =======
         const response = await fetch('https://school-management-system-av07.onrender.com/api/assignments', {
 >>>>>>> 5ab2b09edcd458a602a095bcc9b9d483718a7b98
@@ -382,7 +382,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!token) throw new Error('No token found. Please log in again!');
         
 <<<<<<< HEAD
-        const response = await fetch(`https://destinydeterminersacademy.onrender.com/api/assignments/${assignmentId}`, {
+        const response = await fetch(`https://judahcareacademy.onrender.com/api/assignments/${assignmentId}`, {
 =======
         const response = await fetch(`https://school-management-system-av07.onrender.com/api/assignments/${assignmentId}`, {
 >>>>>>> 5ab2b09edcd458a602a095bcc9b9d483718a7b98
@@ -510,7 +510,7 @@ function loadStudentsForGradeDropdown() {
   
   const token = localStorage.getItem('token');
 <<<<<<< HEAD
-  const API_BASE_URL = 'https://destinydeterminersacademy.onrender.com';
+  const API_BASE_URL = 'https://judahcareacademy.onrender.com';
 =======
   const API_BASE_URL = 'https://school-management-system-av07.onrender.com';
 >>>>>>> 5ab2b09edcd458a602a095bcc9b9d483718a7b98

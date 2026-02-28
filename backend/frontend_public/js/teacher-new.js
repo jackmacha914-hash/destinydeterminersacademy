@@ -1,4 +1,4 @@
-const API_BASE_URL = 'https://destinydeterminersacademy.onrender.com';
+const API_BASE_URL = 'https://judahcareacademy.onrender.com';
 
 document.addEventListener('DOMContentLoaded', () => {
   /* ---------------------------

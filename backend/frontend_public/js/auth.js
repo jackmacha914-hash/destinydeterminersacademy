@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const password = loginForm.querySelector('#password').value;
 
             try {
-                const response = await fetch('https://destinydeterminersacademy.onrender.com/api/auth/login', {
+                const response = await fetch('https://judahcareacademy.onrender.com/api/auth/login', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

@@ -83,7 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
 
                     // Send the file to the server
-                    const response = await fetch('https://destinydeterminersacademy.onrender.com/api/assignments/submit', {
+                    const response = await fetch('https://judahcareacademy.onrender.com/api/assignments/submit', {
                         method: 'POST',
                         headers: {
                             'Authorization': `Bearer ${token}`

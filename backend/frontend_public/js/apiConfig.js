@@ -1,6 +1,6 @@
 // apiConfig.js
 const API_CONFIG = {
-  API_BASE_URL: "https://destinydeterminersacademy.onrender.com"
+  API_BASE_URL: "https://judahcareacademy.onrender.com"
 };
 
 window.API_CONFIG = API_CONFIG;
